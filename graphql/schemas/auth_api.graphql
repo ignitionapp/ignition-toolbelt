@@ -1,0 +1,463 @@
+"""
+Requires that exactly one field must be supplied and that field must not be `null`.
+"""
+directive @oneOf on INPUT_OBJECT
+
+scalar CountryCode
+
+"""ISO8601 formatted date (yyyy-mm-dd)"""
+scalar Date
+
+scalar EmailAddress
+
+enum MfaDeliveryMethod {
+  EMAIL
+  SMS
+  AUTH_APP
+}
+
+type MfaInfo {
+  backupSetupRequired: Boolean!
+
+  """User's country code"""
+  defaultCountryCode: CountryCode!
+  enabled: Boolean!
+  id: ID!
+
+  """Flag to indicate if user could setup MFA now."""
+  readyForSetup: Boolean!
+  setupRequiredFrom: Date
+
+  """Flag to indicate if user is still in MFA setup grace period."""
+  setupSkippable: Boolean!
+  sources: [MfaSource!]
+}
+
+type MfaSource {
+  contact: String
+  deliveryMethod: MfaDeliveryMethod!
+  id: ID!
+  type: MfaSourceTypeEnum
+}
+
+enum MfaSourceTypeEnum {
+  PRIMARY
+  BACKUP
+}
+
+type Mutation {
+  """Confirm user with confirmation token"""
+  userConfirm(
+    """Parameters for UserConfirm"""
+    input: UserConfirmInput!
+  ): UserConfirmPayload
+
+  """
+  Accept user invitation with invitation token. Sign in user and generate user's access token
+  """
+  userInvitationAccept(
+    """Parameters for UserInvitationAccept"""
+    input: UserInvitationAcceptInput!
+  ): UserInvitationAcceptPayload
+
+  """Sign in user with rails session and generate user's access token"""
+  userLogin(
+    """Parameters for UserLogin"""
+    input: UserLoginInput!
+  ): UserLoginPayload
+
+  """
+  Sign in user with one time password when multi-factor authentication(mfa) is
+  enabled for the user. It requires user token with mfa scope to execute the mutation.
+  """
+  userLoginWithOneTimePassword(
+    """Parameters for UserLoginWithOneTimePassword"""
+    input: UserLoginWithOneTimePasswordInput!
+  ): UserLoginWithOneTimePasswordPayload
+
+  """Sign in user with rails session and generate user's access token"""
+  userLoginWithOneTimeToken(
+    """Parameters for UserLoginWithOneTimeToken"""
+    input: UserLoginWithOneTimeTokenInput!
+  ): UserLoginWithOneTimeTokenPayload
+
+  """
+  Send one time password to user's multi-factor authentication(mfa) backup
+  method(email or sms). It requires user token with mfa scope to execute the mutation
+  """
+  userMfaBackupSourceSetup(
+    """Parameters for UserMfaBackupSourceSetup"""
+    input: UserMfaBackupSourceSetupInput!
+  ): UserMfaBackupSourceSetupPayload
+
+  """
+  Validate one time password and then set user's multi-factor
+  authentication(mfa) backup method(email or sms). It requires user token with
+  mfa scope to execute the mutation.
+  """
+  userMfaBackupSourceVerify(
+    """Parameters for UserMfaBackupSourceVerify"""
+    input: UserMfaBackupSourceVerifyInput!
+  ): UserMfaBackupSourceVerifyPayload
+
+  """
+  Enable multi-factor authentication(mfa) for current user. It requires user token with mfa scope to execute the mutation.
+  """
+  userMfaEnable(
+    """Parameters for UserMfaEnable"""
+    input: UserMfaEnableInput!
+  ): UserMfaEnablePayload
+
+  """
+  Send one time password to current user's saved mfa method(primary/backup). It requires mfa scope to execute the mutation.
+  """
+  userMfaOneTimePasswordRequest(
+    """Parameters for UserMfaOneTimePasswordRequest"""
+    input: UserMfaOneTimePasswordRequestInput!
+  ): UserMfaOneTimePasswordRequestPayload
+
+  """
+  Send one time password to user's multi-factor authentication(mfa) primary
+  method(auth app or sms). It requires user token mfa scope to execute the mutation.
+  """
+  userMfaPrimarySourceSetup(
+    """Parameters for UserMfaPrimarySourceSetup"""
+    input: UserMfaPrimarySourceSetupInput!
+  ): UserMfaPrimarySourceSetupPayload
+
+  """
+  Validate one time password and then set user's multi-factor
+  authentication(mfa) primary method(auth app or sms). It requires user token
+  mfa scope to execute the mutation.
+  """
+  userMfaPrimarySourceVerify(
+    """Parameters for UserMfaPrimarySourceVerify"""
+    input: UserMfaPrimarySourceVerifyInput!
+  ): UserMfaPrimarySourceVerifyPayload
+
+  """Send resetting password instructions to user's email."""
+  userPasswordResetSend(
+    """Parameters for UserPasswordResetSend"""
+    input: UserPasswordResetSendInput!
+  ): UserPasswordResetSendPayload
+
+  """Validate user's resetting password token and generate user token."""
+  userPasswordResetVerify(
+    """Parameters for UserPasswordResetVerify"""
+    input: UserPasswordResetVerifyInput!
+  ): UserPasswordResetVerifyPayload
+
+  """
+  Update user's password when a valid one time password is provided, then sign
+  in user and generate user token. It requires user token with reset_password
+  scope to execute the mutation.
+  """
+  userPasswordUpdateAfterReset(
+    """Parameters for UserPasswordUpdateAfterReset"""
+    input: UserPasswordUpdateAfterResetInput!
+  ): UserPasswordUpdateAfterResetPayload
+  userRefreshToken(
+    """Parameters for UserRefreshToken"""
+    input: UserRefreshTokenInput!
+  ): UserRefreshTokenPayload
+
+  """
+  Finish SingleSignOn signup, consume one time token and create practice with user from the social login.
+  """
+  userRegisterWithSingleSignOn(
+    """Parameters for UserRegisterWithSingleSignOn"""
+    input: UserRegisterWithSingleSignOnInput!
+  ): UserRegisterWithSingleSignOnPayload
+
+  """Create user with given email and password."""
+  userRegistration(
+    """Parameters for UserRegistration"""
+    input: UserRegistrationInput!
+  ): UserRegistrationPayload
+}
+
+type Query {
+  codeVersion: String!
+  environment: String!
+
+  """Minimum password strength score"""
+  passwordStrengthMinimumScore: Int!
+
+  """Checks the strength score of the given password"""
+  passwordStrengthScore(password: String!): Int!
+
+  """Strong password strength score"""
+  passwordStrengthStrongScore: Int!
+}
+
+"""Autogenerated input type of UserConfirm"""
+input UserConfirmInput {
+  """A unique identifier for the client performing the mutation."""
+  clientMutationId: String
+  confirmationToken: String!
+}
+
+"""Autogenerated return type of UserConfirm."""
+type UserConfirmPayload {
+  """A unique identifier for the client performing the mutation."""
+  clientMutationId: String
+}
+
+"""Autogenerated input type of UserInvitationAccept"""
+input UserInvitationAcceptInput {
+  """A unique identifier for the client performing the mutation."""
+  clientMutationId: String
+  password: String!
+  invitationToken: String!
+}
+
+"""Autogenerated return type of UserInvitationAccept."""
+type UserInvitationAcceptPayload {
+  accessToken: String
+
+  """A unique identifier for the client performing the mutation."""
+  clientMutationId: String
+  mfaInfo: MfaInfo
+}
+
+"""Autogenerated input type of UserLogin"""
+input UserLoginInput {
+  """A unique identifier for the client performing the mutation."""
+  clientMutationId: String
+  email: EmailAddress!
+  password: String!
+  rememberMeToken: String
+}
+
+"""Autogenerated return type of UserLogin."""
+type UserLoginPayload {
+  accessToken: String
+
+  """A unique identifier for the client performing the mutation."""
+  clientMutationId: String
+  mfaInfo: MfaInfo
+  oneTimePasswordRequired: Boolean
+}
+
+"""Autogenerated input type of UserLoginWithOneTimePassword"""
+input UserLoginWithOneTimePasswordInput {
+  """A unique identifier for the client performing the mutation."""
+  clientMutationId: String
+  oneTimePassword: String!
+
+  """Flag to control whether to generate user mfa remember me token."""
+  rememberMe: Boolean
+}
+
+"""Autogenerated return type of UserLoginWithOneTimePassword."""
+type UserLoginWithOneTimePasswordPayload {
+  accessToken: String!
+
+  """A unique identifier for the client performing the mutation."""
+  clientMutationId: String
+  rememberMeToken: String
+}
+
+"""Autogenerated input type of UserLoginWithOneTimeToken"""
+input UserLoginWithOneTimeTokenInput {
+  """A unique identifier for the client performing the mutation."""
+  clientMutationId: String
+  oneTimeToken: String!
+}
+
+"""Autogenerated return type of UserLoginWithOneTimeToken."""
+type UserLoginWithOneTimeTokenPayload {
+  accessToken: String
+
+  """A unique identifier for the client performing the mutation."""
+  clientMutationId: String
+}
+
+"""Autogenerated input type of UserMfaBackupSourceSetup"""
+input UserMfaBackupSourceSetupInput {
+  """A unique identifier for the client performing the mutation."""
+  clientMutationId: String
+  deliveryMethod: MfaDeliveryMethod!
+  contact: String
+}
+
+"""Autogenerated return type of UserMfaBackupSourceSetup."""
+type UserMfaBackupSourceSetupPayload {
+  """A unique identifier for the client performing the mutation."""
+  clientMutationId: String
+  mfaInfo: MfaInfo
+}
+
+"""Autogenerated input type of UserMfaBackupSourceVerify"""
+input UserMfaBackupSourceVerifyInput {
+  """A unique identifier for the client performing the mutation."""
+  clientMutationId: String
+  deliveryMethod: MfaDeliveryMethod!
+  contact: String!
+  oneTimePassword: String!
+}
+
+"""Autogenerated return type of UserMfaBackupSourceVerify."""
+type UserMfaBackupSourceVerifyPayload {
+  """A unique identifier for the client performing the mutation."""
+  clientMutationId: String
+  mfaInfo: MfaInfo
+}
+
+"""Autogenerated input type of UserMfaEnable"""
+input UserMfaEnableInput {
+  """A unique identifier for the client performing the mutation."""
+  clientMutationId: String
+}
+
+"""Autogenerated return type of UserMfaEnable."""
+type UserMfaEnablePayload {
+  accessToken: String!
+
+  """A unique identifier for the client performing the mutation."""
+  clientMutationId: String
+  mfaInfo: MfaInfo!
+}
+
+"""Autogenerated input type of UserMfaOneTimePasswordRequest"""
+input UserMfaOneTimePasswordRequestInput {
+  """A unique identifier for the client performing the mutation."""
+  clientMutationId: String
+  viaBackup: Boolean!
+}
+
+"""Autogenerated return type of UserMfaOneTimePasswordRequest."""
+type UserMfaOneTimePasswordRequestPayload {
+  """A unique identifier for the client performing the mutation."""
+  clientMutationId: String
+  mfaInfo: MfaInfo!
+}
+
+"""Autogenerated input type of UserMfaPrimarySourceSetup"""
+input UserMfaPrimarySourceSetupInput {
+  """A unique identifier for the client performing the mutation."""
+  clientMutationId: String
+  deliveryMethod: MfaDeliveryMethod!
+  contact: String
+}
+
+"""Autogenerated return type of UserMfaPrimarySourceSetup."""
+type UserMfaPrimarySourceSetupPayload {
+  """A unique identifier for the client performing the mutation."""
+  clientMutationId: String
+  mfaInfo: MfaInfo!
+
+  """
+  Code which may be copied to the authenticator app in leau of scanning the QR code.
+  """
+  mfaProvisioningCode: String!
+  mfaProvisioningUri: String!
+}
+
+"""Autogenerated input type of UserMfaPrimarySourceVerify"""
+input UserMfaPrimarySourceVerifyInput {
+  """A unique identifier for the client performing the mutation."""
+  clientMutationId: String
+  deliveryMethod: MfaDeliveryMethod!
+  contact: String
+  oneTimePassword: String!
+}
+
+"""Autogenerated return type of UserMfaPrimarySourceVerify."""
+type UserMfaPrimarySourceVerifyPayload {
+  """A unique identifier for the client performing the mutation."""
+  clientMutationId: String
+  mfaInfo: MfaInfo
+}
+
+"""Autogenerated input type of UserPasswordResetSend"""
+input UserPasswordResetSendInput {
+  """A unique identifier for the client performing the mutation."""
+  clientMutationId: String
+  email: EmailAddress!
+}
+
+"""Autogenerated return type of UserPasswordResetSend."""
+type UserPasswordResetSendPayload {
+  """A unique identifier for the client performing the mutation."""
+  clientMutationId: String
+}
+
+"""Autogenerated input type of UserPasswordResetVerify"""
+input UserPasswordResetVerifyInput {
+  """A unique identifier for the client performing the mutation."""
+  clientMutationId: String
+  resetPasswordToken: String!
+}
+
+"""Autogenerated return type of UserPasswordResetVerify."""
+type UserPasswordResetVerifyPayload {
+  accessToken: String!
+
+  """A unique identifier for the client performing the mutation."""
+  clientMutationId: String
+  mfaInfo: MfaInfo!
+}
+
+"""Autogenerated input type of UserPasswordUpdateAfterReset"""
+input UserPasswordUpdateAfterResetInput {
+  """A unique identifier for the client performing the mutation."""
+  clientMutationId: String
+  password: String!
+  oneTimePassword: String
+}
+
+"""Autogenerated return type of UserPasswordUpdateAfterReset."""
+type UserPasswordUpdateAfterResetPayload {
+  accessToken: String!
+
+  """A unique identifier for the client performing the mutation."""
+  clientMutationId: String
+}
+
+"""Autogenerated input type of UserRefreshToken"""
+input UserRefreshTokenInput {
+  """A unique identifier for the client performing the mutation."""
+  clientMutationId: String
+}
+
+"""Autogenerated return type of UserRefreshToken."""
+type UserRefreshTokenPayload {
+  accessToken: String!
+
+  """A unique identifier for the client performing the mutation."""
+  clientMutationId: String
+}
+
+"""Autogenerated input type of UserRegisterWithSingleSignOn"""
+input UserRegisterWithSingleSignOnInput {
+  """A unique identifier for the client performing the mutation."""
+  clientMutationId: String
+  oneTimeToken: String!
+}
+
+"""Autogenerated return type of UserRegisterWithSingleSignOn."""
+type UserRegisterWithSingleSignOnPayload {
+  accessToken: String
+
+  """A unique identifier for the client performing the mutation."""
+  clientMutationId: String
+}
+
+"""Autogenerated input type of UserRegistration"""
+input UserRegistrationInput {
+  """A unique identifier for the client performing the mutation."""
+  clientMutationId: String
+  email: EmailAddress!
+  password: String!
+  referralCode: String
+}
+
+"""Autogenerated return type of UserRegistration."""
+type UserRegistrationPayload {
+  accessToken: String!
+
+  """A unique identifier for the client performing the mutation."""
+  clientMutationId: String
+}
+

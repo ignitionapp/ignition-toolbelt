@@ -1,9 +1,11 @@
 {
   "manifest_version": 3,
-  "name": "IgnitionApp Toolbelt",
+  "name": "Ignition Toolbelt",
   "description": "Toolbelt",
   "options_page": "options.html",
-  "background": { "service_worker": "background.bundle.js" },
+  "background": {
+    "service_worker": "background.bundle.js"
+  },
   "action": {
     "default_popup": "popup.html",
     "default_icon": "icon-34.png"
@@ -16,12 +18,24 @@
   },
   "content_scripts": [
     {
-      "matches": ["https://*.ignitionapp.com/*", "http://localhost:3000/*"],
-      "js": ["contentScript.bundle.js"],
-      "css": ["content.styles.css"]
+      "matches": [
+        "https://*.ignitionapp.com/*",
+        "http://localhost:3000/*"
+      ],
+      "js": [
+        "contentScript.bundle.js"
+      ],
+      "css": [
+        "content.styles.css"
+      ]
     }
   ],
-  "permissions": ["storage", "tabs", "cookies", "management"],
+  "permissions": [
+    "storage",
+    "tabs",
+    "cookies",
+    "management"
+  ],
   "host_permissions": [
     "https://*.ignitionapp.com/",
     "http://localhost:3000/"
@@ -29,7 +43,11 @@
   "devtools_page": "devtools.html",
   "web_accessible_resources": [
     {
-      "resources": ["content.styles.css", "icon-128.png", "icon-34.png"],
+      "resources": [
+        "content.styles.css",
+        "icon-128.png",
+        "icon-34.png"
+      ],
       "matches": []
     }
   ]

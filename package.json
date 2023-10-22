@@ -10,7 +10,11 @@
   "scripts": {
     "build": "node utils/build.js",
     "start": "node utils/webserver.js",
-    "prettier": "prettier --write '**/*.{js,jsx,ts,tsx,json,css,scss,md}'"
+    "prettier": "prettier --write '**/*.{js,jsx,ts,tsx,json,css,scss,md}'",
+    "graphql:get-schema": "get-graphql-schema http://localhost:3000/auth-api/graphql > graphql/schemas/auth_api.graphql; get-graphql-schema http://localhost:3000/dev_api/graphql > graphql/schemas/dev_api.graphql; get-graphql-schema http://localhost:3000/graphql > graphql/schemas/ignition.graphql --header 'Authorization=Bearer eyJhbGciOiJIUzI1NiJ9.eyJqdGkiOiJ1c3J0a25fbXR3cWI2Z2U3cXpxcGd5YWJnbHEiLCJpYXQiOjE2OTMyNTM4ODAsImV4cCI6MTY5MzI1NTY4MCwic3ViIjoidXNlcl9tdG8zNWhvZTdxenNjdnlhc2NycSIsInNjb3BlcyI6WyJtZmEiLCJhcHAiXSwic2Vzc2lvbl9pZCI6ImU5MTllNjQ5NmE4OTBmZTk3YjI1NDVhNzJjZjhhZWFiNWQ1MTYxMTQ0MzdmNDIzMDJmYzM4NzEyNmRhNDFiMzQifQ._YJIajVvIAALOcKFKrhOVIyVaNBJlLid0QopJ0DZdF0'",
+    "graphql:codegen": "graphql codegen",
+    "graphql:coverage": "graphql coverage",
+    "graphql:validate": "graphql validate"
   },
   "dependencies": {
     "@apollo/client": "^3.7.1",
@@ -33,7 +37,12 @@
     "@babel/plugin-proposal-class-properties": "^7.18.6",
     "@babel/preset-env": "^7.20.2",
     "@babel/preset-react": "^7.18.6",
+    "@graphql-cli/codegen": "3.0.4",
+    "@graphql-cli/coverage": "2.1.0",
+    "@graphql-cli/validate": "2.1.0",
     "@graphql-codegen/cli": "^5.0.0",
+    "@graphql-codegen/typescript": "4.0.1",
+    "@graphql-codegen/typescript-react-apollo": "3.3.7",
     "@pmmmwh/react-refresh-webpack-plugin": "^0.5.10",
     "@types/chrome": "^0.0.202",
     "@types/react": "^18.0.26",
@@ -53,6 +62,7 @@
     "eslint-plugin-react-hooks": "^4.6.0",
     "file-loader": "^6.2.0",
     "fs-extra": "^11.1.0",
+    "graphql-cli": "^4.1.0",
     "html-loader": "^4.2.0",
     "html-webpack-plugin": "^5.5.0",
     "prettier": "^2.8.3",
