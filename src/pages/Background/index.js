@@ -1,5 +1,5 @@
 // Bubble activation
-import './set-current-tab-credentials';
+import './set-bubble-activation';
 
 // Features
 import './set-github-ticket-autolink';
