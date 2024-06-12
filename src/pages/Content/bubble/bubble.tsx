@@ -102,7 +102,7 @@ export const Bubble = ({
             opacity: '1',
           }}
         >
-          <Menu arrowPadding={16}>
+          <Menu isLazy lazyBehavior="keepMounted" arrowPadding={16}>
             <MenuButton padding="10px">
               <Image
                 src={iconUrl}
@@ -115,7 +115,7 @@ export const Bubble = ({
               <Header csrfToken={csrfToken} />
               <MenuDivider />
               <MenuItem
-                icon={<FontAwesomeIcon icon={faScrewdriverWrench} />}
+                icon={<FontAwesomeIcon fixedWidth icon={faScrewdriverWrench} />}
                 onClick={handleClickMissionControl}
               >
                 <Flex justifyContent="space-between">
@@ -134,13 +134,13 @@ export const Bubble = ({
                 </Flex>
               </MenuItem>
               <MenuItem
-                icon={<FontAwesomeIcon icon={faFlag} />}
+                icon={<FontAwesomeIcon fixedWidth icon={faFlag} />}
                 onClick={onAcknowledgementClick}
               >
                 Acknowledgements
               </MenuItem>
               <MenuItem
-                icon={<FontAwesomeIcon icon={faTerminal} />}
+                icon={<FontAwesomeIcon fixedWidth icon={faTerminal} />}
                 onClick={handleClickGraphiql}
               >
                 GraphiQL
@@ -151,13 +151,16 @@ export const Bubble = ({
                   href={stripeDashboardUri}
                   target="_blank"
                   // @ts-ignore
-                  icon={<FontAwesomeIcon icon={faStripeS} />}
+                  icon={<FontAwesomeIcon fixedWidth icon={faStripeS} />}
                 >
                   <Flex justifyContent="space-between">
                     <HStack>
                       <Text>Stripe dashboard</Text>
                       <Text as="span" fontSize="xsmall">
-                        <FontAwesomeIcon icon={faArrowUpRightFromSquare} />
+                        <FontAwesomeIcon
+                          fixedWidth
+                          icon={faArrowUpRightFromSquare}
+                        />
                       </Text>
                     </HStack>
                     <Tooltip
@@ -174,20 +177,22 @@ export const Bubble = ({
               ) : null}
               {isDevelopmentEnv ? (
                 <MenuItem
-                  icon={<FontAwesomeIcon icon={faWandMagicSparkles} />}
+                  icon={
+                    <FontAwesomeIcon fixedWidth icon={faWandMagicSparkles} />
+                  }
                   onClick={onClickCreateNewAccount}
                 >
                   Create new account
                 </MenuItem>
               ) : null}
               <MenuItem
-                icon={<FontAwesomeIcon icon={faGear} />}
+                icon={<FontAwesomeIcon fixedWidth icon={faGear} />}
                 onClick={onPanelClick}
               >
                 Settings
               </MenuItem>
               <MenuItem
-                icon={<FontAwesomeIcon icon={faCircleInfo} />}
+                icon={<FontAwesomeIcon fixedWidth icon={faCircleInfo} />}
                 onClick={onOpen}
               >
                 About
