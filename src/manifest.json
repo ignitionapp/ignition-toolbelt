@@ -15,7 +15,9 @@
   "content_scripts": [
     {
       "matches": [
-        "https://*.ignitionapp.com/*",
+        "https://go.ignitionapp.com/*",
+        "https://demo.ignitionapp.com/*",
+        "https://*.sandbox.ignitionapp.com/*",
         "http://localhost:3000/*",
         "https://github.com/*",
         "https://api.recurly.com/js/v1/field.html",
@@ -40,7 +42,9 @@
     "webNavigation"
   ],
   "host_permissions": [
-    "https://*.ignitionapp.com/",
+    "https://*.sandbox.ignitionapp.com/",
+    "https://demo.ignitionapp.com/",
+    "https://go.ignitionapp.com/",
     "http://localhost:3000/"
   ],
   "devtools_page": "devtools.html",
