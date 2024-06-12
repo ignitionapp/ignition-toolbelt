@@ -1,18 +1,16 @@
 import {
-  CloseButton,
   Flex,
   HStack,
   Link,
   Modal,
   ModalBody,
+  ModalCloseButton,
   ModalContent,
   ModalHeader,
   ModalOverlay,
   Text,
-  useBoolean,
-  useOutsideClick,
 } from '@chakra-ui/react';
-import React, { useEffect, useRef } from 'react';
+import React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowUpRightFromSquare } from '@fortawesome/free-solid-svg-icons';
 
@@ -24,76 +22,10 @@ type Props = {
 };
 
 export const MissionControl = ({ url, name, isOpen, onClose }: Props) => {
-  const [isRendered, setRendered] = useBoolean();
-  const [isVisible, setVisibility] = useBoolean();
-
-  const ref = useRef<HTMLElement>(null);
-  useOutsideClick({
-    ref: ref,
-    handler: () => {
-      setVisibility.off();
-      onClose();
-    },
-  });
-
-  useEffect(() => {
-    if (url && name && isOpen && !isRendered) {
-      setRendered.on();
-      setVisibility.on();
-    }
-  }, [isOpen, isRendered, name, setRendered, setVisibility, url]);
-
-  useEffect(() => {
-    if (!isRendered) {
-      return;
-    }
-    if (isOpen) {
-      setVisibility.on();
-    } else {
-      setVisibility.off();
-    }
-  }, [isOpen, isRendered, isVisible, setVisibility]);
-
-  if (!url || !isRendered) {
-    return null;
-  }
-
-  const handleClickClose: React.MouseEventHandler<HTMLButtonElement> = (e) => {
-    e.preventDefault();
-    setVisibility.off();
-    onClose();
-  };
-
-  const handleOriginalClose = () => {
-    // doing nothing
-  };
-
   return (
-    <Modal
-      isCentered
-      isOpen
-      closeOnEsc={false}
-      closeOnOverlayClick={false}
-      onClose={handleOriginalClose}
-      trapFocus={isVisible}
-      size="8xl"
-    >
-      {isVisible ? <ModalOverlay /> : null}
-      <ModalContent
-        maxWidth="95%"
-        width="1400px"
-        sx={
-          !isVisible
-            ? {
-                top: '-1000em',
-                right: 'unset',
-                left: '-1000em',
-                bottom: 'unset',
-              }
-            : undefined
-        }
-        ref={ref}
-      >
+    <Modal isCentered isOpen={isOpen} onClose={onClose} size="8xl">
+      <ModalOverlay />
+      <ModalContent maxWidth="95%" width="1400px">
         <ModalHeader>
           <Flex justifyContent="space-between">
             <HStack spacing="large">
@@ -102,7 +34,7 @@ export const MissionControl = ({ url, name, isOpen, onClose }: Props) => {
                 <FontAwesomeIcon icon={faArrowUpRightFromSquare} />
               </Link>
             </HStack>
-            <CloseButton alignSelf="left" onClick={handleClickClose} />
+            <ModalCloseButton />
           </Flex>
         </ModalHeader>
         <ModalBody pb="xlarge">

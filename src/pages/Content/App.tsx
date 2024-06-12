@@ -64,7 +64,6 @@ export const App = ({ csrfToken }: { csrfToken: string }) => {
         name={missionControlName}
         isOpen={isMissionControlVisible}
         onClose={() => {
-          console.log('Mission control onClose');
           setMissionControlVisibility.off();
         }}
       />
@@ -73,7 +72,6 @@ export const App = ({ csrfToken }: { csrfToken: string }) => {
         name={graphiqlName}
         isOpen={isGraphiqlVisible}
         onClose={() => {
-          console.log('Graphql onClose');
           setGraphiqlVisibility.off();
         }}
       />
