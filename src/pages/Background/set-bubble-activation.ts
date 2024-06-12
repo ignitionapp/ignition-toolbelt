@@ -7,8 +7,8 @@ const FILTERS = {
       ports: [3000],
     },
     {
-      hostSuffix: 'ignitionapp.com',
-    },
+      hostSuffix: '.ignitionapp.com'
+    }
   ],
 };
 
