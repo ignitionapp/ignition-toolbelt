@@ -27,7 +27,7 @@ window.addEventListener('load', async () => {
   await setGithubAutofill();
 });
 
-chrome.runtime.onMessage.addListener(async ({ type, value }) => {
+chrome.runtime.onMessage.addListener(async ({ type }) => {
   let rootEl = document.getElementById('ignition-toolbelt-app');
   if (rootEl === null && type === 'set-bubble-activation') {
     rootEl = document.createElement('div');
@@ -35,9 +35,9 @@ chrome.runtime.onMessage.addListener(async ({ type, value }) => {
 
     const csrfToken = document
       .querySelector('meta[name="csrf-token"]')
-      .getAttribute('content');
+      ?.getAttribute('content');
 
-    if (document.body) {
+    if (document.body && csrfToken) {
       document.body.appendChild(rootEl);
       const root = createRoot(rootEl);
       root.render(<App csrfToken={csrfToken} />);
