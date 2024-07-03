@@ -43,9 +43,10 @@ const run = async (url: string /*, shouldClickNext = false*/) => {
     document.querySelector('[name="city"]');
   if (cityEl) simulateType(cityEl, faker.location.city());
 
-  const stateEl: HTMLInputElement | null =
-    document.querySelector('[name="state"]');
-  if (stateEl) simulateType(stateEl, faker.location.state());
+  simulateSelect(
+    '.chakra-form-control:contains("State")',
+    faker.location.state()
+  );
 
   const postalCodeEl: HTMLInputElement | null = document.querySelector(
     '[name="postalCode"]'

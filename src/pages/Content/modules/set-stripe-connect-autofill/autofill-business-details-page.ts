@@ -8,12 +8,13 @@ import {
 import type { Faker } from '@faker-js/faker';
 import { getPostCodeByState, State } from './utils';
 
-function generateFakeABN(faker: Faker) {
-  const prefix = faker.number.int({ min: 10, max: 99 }).toString();
-  const body = faker.datatype
-    .number({ min: 100000000, max: 999999999 })
-    .toString();
-  return `${prefix} ${body}`;
+function generateFakeABN(/*faker: Faker*/) {
+  return '11212332356';
+  // const prefix = faker.number.int({ min: 10, max: 19 }).toString();
+  // const body = faker.datatype
+  //   .number({ min: 100000000, max: 199999999 })
+  //   .toString();
+  // return `${prefix}${body}`;
 }
 
 export const autofillBusinessDetailsPage = async (

@@ -1,3 +1,5 @@
+import { q } from '../../lib';
+
 export const simulateType = (inputElement: HTMLInputElement, text: string) => {
   inputElement.focus();
   inputElement.value = text;
@@ -15,9 +17,10 @@ export const simulateClick = (buttonElement: HTMLButtonElement) => {
 };
 
 export const simulateSelect = (selector: string, value: string) => {
-  const selectControl: HTMLInputElement | null = document.querySelector(
-    `${selector} .react-select__control input`
-  );
+  const selectControl = q<HTMLElement>(
+    selector
+  )?.querySelector<HTMLInputElement>('.react-select__control input');
+
   if (!selectControl) {
     console.error('Select control not found');
     return;
