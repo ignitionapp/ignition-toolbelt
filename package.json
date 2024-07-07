@@ -12,7 +12,7 @@
     "dist": "NODE_ENV=production yarn build",
     "start": "node utils/webserver.js",
     "prettier": "prettier --write '**/*.{js,jsx,ts,tsx,json,css,scss,md}'",
-    "graphql:get-schema": "get-graphql-schema http://localhost:3000/auth-api/graphql > graphql/schemas/auth_api.graphql; get-graphql-schema http://localhost:3000/dev_api/graphql > graphql/schemas/dev_api.graphql; get-graphql-schema http://localhost:3000/graphql > graphql/schemas/ignition.graphql --header 'Authorization=Bearer eyJhbGciOiJIUzI1NiJ9.eyJqdGkiOiJ1c3J0a25fbXhmaGtmNmU3cXp5am9pYWxpbXEiLCJpYXQiOjE3MDc3NjcwNjMsImV4cCI6MTcwNzc2ODg2Mywic3ViIjoidXNlcl9tdWQ3Zm5nZTdxenk3dGlhbmJ0cSIsInNjb3BlcyI6WyJtZmEiLCJhcHAiXSwic2Vzc2lvbl9pZCI6IjY0OGRkOWJmYWYwMTk4N2ZiNDM2ZjNjY2Q3NTgyNjQ0MTM3MjhlYTQ1YzkwYmY3OWU4NGYzYWRmYzQ5MmIzYTkifQ.Wj2oF4YBF1e4Gebw6zzROKDzjJklQok0-1y2iAx8EV0'",
+    "graphql:get-schema": "get-graphql-schema http://localhost:3000/auth-api/graphql > graphql/schemas/auth_api.graphql; get-graphql-schema http://localhost:3000/dev_api/graphql > graphql/schemas/dev_api.graphql; get-graphql-schema http://localhost:3000/graphql > graphql/schemas/ignition.graphql --header 'Authorization=Bearer eyJhbGciOiJIUzI1NiJ9.eyJqdGkiOiJ1c3J0a25fbTJkcXViZGk1a3B0d2dxYTZjcHEiLCJpYXQiOjE3MjAxMjU5NTYsImV4cCI6MTcyMDEyNzc1Niwic3ViIjoidXNlcl9tMmRxdGwzaTVrcHR3Z2lhN2JnYSIsInNjb3BlcyI6WyJtZmEiLCJhcHAiXSwic2Vzc2lvbl9pZCI6ImFlOWQ1ZGZhZWRjYjk5NTljNWU1MjdiNTllMzc5OWRlZjJkMzQwNmJjNDEzOTVjMmFlZWI0M2VhMjIxOWZlNWEifQ.snvCP2T5x5Ebse1bxmOlN4kLXiJBCmbDIlURjwye6eo'",
     "graphql:codegen": "graphql-codegen",
     "graphql:coverage": "graphql coverage",
     "graphql:validate": "graphql validate"
@@ -36,9 +36,9 @@
     "graphql-request": "^5.1.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-draggable": "^4.4.6",
     "react-hook-form": "^7.43.9",
     "react-hot-loader": "^4.13.0",
+    "react-markdown": "^9.0.1",
     "react-select": "^5.8.0",
     "whatwg-fetch": "^3.6.20"
   },
@@ -78,6 +78,7 @@
     "eslint-plugin-react-hooks": "^4.6.0",
     "file-loader": "^6.2.0",
     "fs-extra": "^11.1.0",
+    "get-graphql-schema": "^2.1.2",
     "graphql-cli": "^4.1.0",
     "graphql-tag": "^2.12.6",
     "html-loader": "^4.2.0",

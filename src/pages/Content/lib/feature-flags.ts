@@ -5,6 +5,7 @@ export const GITHUB_AUTOFILL = 'feature::github-autofill';
 export const GITHUB_AUTOFILL_SETTING = 'feature::github-autofill::setting';
 export const JIRA_MISSION_CONTROL_LOGIN = 'feature::jira-mission-control-login';
 export const NPE_EXIT = 'feature::npe-exit';
+export const AI_ASSISTANT = 'feature::ai-assistant';
 
 export const allFeatureFlags = [
   AUTOFILL_PAGES,
@@ -13,4 +14,5 @@ export const allFeatureFlags = [
   GITHUB_AUTOFILL,
   JIRA_MISSION_CONTROL_LOGIN,
   NPE_EXIT,
+  AI_ASSISTANT,
 ] as const;

@@ -123,6 +123,7 @@ type ActivityLog {
   additionalInfo: String
   createdAt: DateTime!
   id: ID!
+  info: String! @deprecated(reason: "Use message.")
   level: ActivityLogLevel!
   message: String!
   relationId: ID!
@@ -130,6 +131,11 @@ type ActivityLog {
 
   """The user associated with the activity (if any)."""
   user: User
+}
+
+enum ActivityLogCategory {
+  PAYMENTS
+  CLIENTS
 }
 
 """The connection type for ActivityLog."""
@@ -151,6 +157,10 @@ type ActivityLogEdge {
 
   """The item at the end of the edge."""
   node: ActivityLog!
+}
+
+input ActivityLogFilter {
+  categoryIn: [ActivityLogCategory!]
 }
 
 enum ActivityLogLevel {
@@ -256,6 +266,7 @@ type AgreedService {
     orderBy: ActivityLogOrder = {createdAt: ASCENDING}
   ): ActivityLogConnection!
   billingDescription: String @deprecated(reason: "Agreed Service can have multiple portions. Use `portion.billing_description` instead.")
+  billingGroup: BillingGroup
   billingMode: ProposalBillingModeEnum!
   billingSchedule: BillingSchedule! @deprecated(reason: "Use portions { billingSchedule } instead")
   billingSummary: String @deprecated(reason: "Agreed Service can have multiple portions. Use `portion.billing_summary` instead.")
@@ -720,7 +731,8 @@ type AppClientProconnect {
 }
 
 type AppClientResult {
-  appClient: AppClient
+  """The original app client object used throughout Ignition"""
+  appClient: AppClient @deprecated(reason: "This field is not indexed for searching; using it causes an extra database query per result object")
   appData: AppDataUnion!
   appName: String!
   createdAt: DateTime!
@@ -1024,10 +1036,13 @@ enum AsyncJobGroupTypeEnum {
   PAYMENT_METHOD_REQUEST
   RENEWAL
   SEND_PROPOSALS
+  DELETE_PROPOSALS
   CREATED_FROM_LEDGER
   CREATE_VIA_IMPORT
   CREATE_SERVICE_FROM_ITEM
   CREATE_PROPOSALS
+  CLIENT_IMPORT_FROM_APP_CLIENTS
+  ARCHIVE_BILLING_ITEMS
 }
 
 enum AsyncJobStateEnum {
@@ -1210,6 +1225,9 @@ type BillingFixedPriceRule implements BillingPriceRuleInterface {
   """Description of the price rule"""
   description: String!
 
+  """Human readable name of the price rule type"""
+  displayName: String!
+
   """Type of price rule"""
   type: BillingPriceRuleType!
 }
@@ -1320,6 +1338,9 @@ type BillingIncludedPriceRule implements BillingPriceRuleInterface {
   """Description of the price rule"""
   description: String!
 
+  """Human readable name of the price rule type"""
+  displayName: String!
+
   """Type of price rule"""
   type: BillingPriceRuleType!
 }
@@ -1385,6 +1406,20 @@ input BillingItemFilter {
   dateIn: DateRangeInput
   strategyEq: ProposalInvoiceStrategy
   stateIn: ClientBillingBillingItemState
+
+  """Returns only records where the ids are present in this list"""
+  idsIn: [ID!]
+}
+
+"""Input data for filtering billing items"""
+input BillingItemFilterInputType {
+  booleanFilters: [SearchQueryBooleanFilterInput!]
+  dateFilters: [SearchQueryDateFilterInput!]
+  relativeDateFilters: [SearchQueryRelativeDateFilterInput!]
+  numberFilters: [SearchQueryNumberFilterInput!]
+  textFilters: [SearchQueryTextFilterInput!]
+  sort: SearchQuerySortInput
+  pagination: PaginationInput = {pageSize: 25, pageNumber: 1}
 }
 
 type BillingItemGroup {
@@ -1462,31 +1497,28 @@ type BillingItemPreview {
 }
 
 type BillingItemResult {
+  """The value of this billing item excluding tax"""
+  amount: Money
+
+  """The total value of this billing item, including tax"""
+  amountWithTax: Money
+  billingItemStatus: ClientBillingBillingItemState!
   billingStrategy: String!
   client: ClientResult!
-  currency: String!
 
   """The date the item should be billed"""
   date: Date!
-
-  """The billing item minimum value"""
-  estimatedTotalPrice: Money!
   id: ID!
-
-  """Whether the client has a payment method attached to their account"""
-  paymentMethodAttached: Boolean!
-  priceRuleType: String! @deprecated(reason: "Use priceRule { type } instead.")
+  itemPrice: ProposalPriceInterface!
   serviceName: String!
-  status: ClientBillingBillingItemState!
-  text: String!
-
-  """The billing item minimum value"""
-  totalPrice: Money!
 }
 
 type BillingMinimumPriceRule implements BillingPriceRuleInterface {
   """Description of the price rule"""
   description: String!
+
+  """Human readable name of the price rule type"""
+  displayName: String!
 
   """Minimum amount"""
   minimum: Money!
@@ -1554,6 +1586,9 @@ interface BillingPriceRuleInterface {
   """Description of the price rule"""
   description: String!
 
+  """Human readable name of the price rule type"""
+  displayName: String!
+
   """Type of price rule"""
   type: BillingPriceRuleType!
 }
@@ -1585,6 +1620,9 @@ enum BillingQuantityRuleType {
 type BillingRangePriceRule implements BillingPriceRuleInterface {
   """Description of the price rule"""
   description: String!
+
+  """Human readable name of the price rule type"""
+  displayName: String!
 
   """Maximum amount"""
   maximum: Money!
@@ -1661,12 +1699,21 @@ input BillingStartInputType {
   delay: DurationInput
 }
 
+enum BillingStatusType {
+  ARCHIVED
+  BILLED
+  UNBILLED
+}
+
 type BillingUnitPriceRule implements BillingPriceRuleInterface {
   """Amount"""
   amount: Money!
 
   """Description of the price rule"""
   description: String!
+
+  """Human readable name of the price rule type"""
+  displayName: String!
 
   """Type of price rule"""
   type: BillingPriceRuleType!
@@ -1833,6 +1880,7 @@ enum CapabilityNameEnum {
   INVOICE_DEPLOY
   PROPOSAL_IMPORT
   SERVICE_IMPORT
+  TRACK_CATEGORIES
 }
 
 enum CapabilityStateEnum {
@@ -1851,6 +1899,11 @@ type CapabilityWithState {
   description: String!
   name: CapabilityNameEnum!
   state: CapabilityStateEnum!
+}
+
+type Category {
+  id: ID!
+  name: String!
 }
 
 type ChangedValue {
@@ -1923,7 +1976,8 @@ type Client {
 
     """Returns the last _n_ elements from the list."""
     last: Int
-    orderBy: ActivityLogOrder
+    filter: ActivityLogFilter
+    orderBy: ActivityLogOrder = {createdAt: DESCENDING}
   ): ActivityLogConnection!
 
   """
@@ -2018,10 +2072,6 @@ type Client {
     """Returns the last _n_ elements from the list."""
     last: Int
   ): BillableServiceConnection!
-  billingGroup(
-    """Billing Group slug"""
-    id: ID!
-  ): BillingGroup
   billingGroups(
     """Returns the elements in the list that come after the specified cursor."""
     after: String
@@ -2037,6 +2087,7 @@ type Client {
     """Returns the last _n_ elements from the list."""
     last: Int
     filter: ClientBillingBillingGroupFilter
+    sort: SearchQuerySortInput = {attribute: "id", direction: DESC}
   ): BillingGroupConnection!
   billingItem(
     """Billing Item slug"""
@@ -2265,6 +2316,9 @@ type ClientBillingBillingItemConnection {
   """A list of edges."""
   edges: [ClientBillingBillingItemEdge!]!
 
+  """Whether there are any existing billing items at all"""
+  hasItems: Boolean!
+
   """A list of nodes."""
   nodes: [BillingItem!]!
 
@@ -2489,7 +2543,7 @@ type ClientBillingInvoiceItem {
   name: String!
   notes: String
   origin: Origin
-  position: Int
+  position: Int!
   quantity: Decimal!
 
   """The type of tax applied to this item"""
@@ -2576,6 +2630,24 @@ type ClientBillingInvoiceSendInvoiceToClientEmailPayload {
 enum ClientBillingInvoiceState {
   ISSUED
   DELETED
+}
+
+"""Autogenerated input type of ClientBillingItemArchiveAsync"""
+input ClientBillingItemArchiveAsyncInput {
+  """A unique identifier for the client performing the mutation."""
+  clientMutationId: String
+  selectedBillingItemIds: [ID!]
+  selectAll: Boolean
+  searchFilters: BillingItemFilterInputType
+}
+
+"""Autogenerated return type of ClientBillingItemArchiveAsync."""
+type ClientBillingItemArchiveAsyncPayload {
+  """Async Job Group for the app clients being imported in the background"""
+  asyncJobGroup: AsyncJobGroup
+
+  """A unique identifier for the client performing the mutation."""
+  clientMutationId: String
 }
 
 """Autogenerated input type of ClientBillingItemArchive"""
@@ -2866,6 +2938,20 @@ type ClientImportFromAppClientsPayload {
   clientMutationId: String
 }
 
+type ClientImportFromAppClientsResult {
+  """Name of the app that clients were imported from"""
+  appName: String!
+
+  """App Client IDs that failed to import"""
+  failedAppClientIds: [ID!]!
+
+  """Client IDs that were created from import"""
+  importedClientIds: [ID!]!
+
+  """Client IDs that were linked with app clients"""
+  linkedClientIds: [ID!]!
+}
+
 """Autogenerated input type of ClientImport"""
 input ClientImportInput {
   """A unique identifier for the client performing the mutation."""
@@ -3024,7 +3110,8 @@ type ClientRemoveSignatoryPayload {
 }
 
 type ClientResult {
-  client: Client!
+  """The original client object used throughout Ignition"""
+  client: Client! @deprecated(reason: "This field is not indexed for searching; using it causes an extra database query per result object")
   createdAt: DateTime!
   groupContactEmail: String
   groupName: String
@@ -3091,23 +3178,24 @@ type ClientServicesAgreedServiceCancelPayload {
   clientMutationId: String
 }
 
-"""Autogenerated input type of ClientServicesAgreedServiceCreate"""
-input ClientServicesAgreedServiceCreateInput {
+"""
+Autogenerated input type of ClientServicesAgreedServiceChangeBillingGroup
+"""
+input ClientServicesAgreedServiceChangeBillingGroupInput {
   """A unique identifier for the client performing the mutation."""
   clientMutationId: String
 
-  """Client slug"""
-  clientId: ID!
-  agreedServiceInput: AgreedServiceInput!
+  """Agreed Service ID"""
+  agreedServiceId: ID!
 
-  """Payment method slug"""
-  paymentMethodId: ID
-  reason: String
-  notification: NotificationInput
+  """Billing Group ID"""
+  billingGroupId: ID!
 }
 
-"""Autogenerated return type of ClientServicesAgreedServiceCreate."""
-type ClientServicesAgreedServiceCreatePayload {
+"""
+Autogenerated return type of ClientServicesAgreedServiceChangeBillingGroup.
+"""
+type ClientServicesAgreedServiceChangeBillingGroupPayload {
   agreedService: AgreedService!
 
   """A unique identifier for the client performing the mutation."""
@@ -3247,6 +3335,32 @@ input ClientServicesAgreedServiceUpdateInput {
 """Autogenerated return type of ClientServicesAgreedServiceUpdate."""
 type ClientServicesAgreedServiceUpdatePayload {
   agreedService: AgreedService!
+
+  """A unique identifier for the client performing the mutation."""
+  clientMutationId: String
+}
+
+"""Autogenerated input type of ClientServicesInstantBillCreate"""
+input ClientServicesInstantBillCreateInput {
+  """A unique identifier for the client performing the mutation."""
+  clientMutationId: String
+
+  """Client ID"""
+  clientId: ID!
+  agreedServicesInput: [AgreedServiceInput!]!
+
+  """Payment method ID"""
+  paymentMethodId: ID
+  reason: String
+  notification: NotificationInput
+
+  """Billing Group ID"""
+  billingGroupId: ID
+}
+
+"""Autogenerated return type of ClientServicesInstantBillCreate."""
+type ClientServicesInstantBillCreatePayload {
+  agreedServices: [AgreedService!]!
 
   """A unique identifier for the client performing the mutation."""
   clientMutationId: String
@@ -4245,6 +4359,7 @@ input ContactInput {
   mobile: String
   isDefault: Boolean = false
   isRecipient: Boolean = false
+  isDefaultSignatory: Boolean
 }
 
 """Autogenerated input type of ContactUpdate"""
@@ -5790,47 +5905,6 @@ input EstimateQuantityRuleInput {
   amount: Decimal!
 }
 
-type ExitSurvey {
-  """Date user left ignition and submitted survey"""
-  createdAt: DateTime!
-
-  """Any feedback as to reason for leaving"""
-  feedback: String
-
-  """Any other payments tool that user will be using"""
-  paymentAlternative: String
-  practiceId: ID!
-
-  """Any other proposal tool that user will be using"""
-  proposalAlternative: String
-
-  """Reason for leaving ignition"""
-  reason: String
-
-  """On a scale of 1-10 how likely is an user to come back"""
-  returnLikelihood: Int
-  userId: ID!
-  uuid: ID!
-}
-
-"""Input fields for an exit survey"""
-input ExitSurveyInputType {
-  """Reason for leaving"""
-  reason: String!
-
-  """Any feedback as to reason for leaving"""
-  feedback: String!
-
-  """Any other proposal tool that user will be using"""
-  proposalAlternative: String
-
-  """Any other payments tool that user will be using"""
-  paymentAlternative: String
-
-  """On a scale of 1-10 how likely is an user to come back"""
-  returnLikelihood: Int
-}
-
 type Export {
   id: ID!
   user: User!
@@ -6289,6 +6363,55 @@ type InvoiceNotificationSettings {
   useDefaultSettings: Boolean!
 }
 
+type InvoiceResult {
+  amount: Money! @deprecated(reason: "Use amount_with_tax instead")
+
+  """The invoice's total amount including tax"""
+  amountWithTax: Money!
+
+  """The invoice's issue date"""
+  billedOn: Date
+
+  """The client index record relating to the invoice's client"""
+  client: ClientResult!
+
+  """The invoice's scheduled or actual collection date"""
+  collectionOn: Date
+
+  """When the invoice index record was created"""
+  createdAt: DateTime!
+
+  """When the invoice was created"""
+  createdOn: Date! @deprecated(reason: "Use billed_on")
+
+  """The deployed invoice's number in an external ledger"""
+  externalNumber: String
+
+  """The deployed invoice's URL in an external ledger"""
+  externalUrl: String
+
+  """The slug of the invoice that has been indexed"""
+  id: ID!
+
+  """The invoice payment's collection or payout failure date, when relevant"""
+  paymentFailedOn: Date
+
+  """The invoice's payment method"""
+  paymentMethod: SearchInvoicePaymentMethodType
+
+  """The invoice's payment progress"""
+  paymentProgress: SearchInvoicePaymentProgressType
+
+  """The invoice's payment status"""
+  paymentStatus: SearchInvoicePaymentStatusType!
+
+  """The invoice's estimated or actual payout date"""
+  payoutOn: Date
+
+  """When the invoice index record was last updated"""
+  updatedAt: DateTime!
+}
+
 scalar IpAddress
 
 type Ipm {
@@ -6552,6 +6675,7 @@ enum Ledger {
 type LedgerItem {
   """Ledger app"""
   app: App!
+  category: Category
 
   """Ledger Items with the same grouping should be displayed together"""
   grouping: String
@@ -7001,6 +7125,12 @@ type Mutation {
     input: ClientBillingItemArchiveInput!
   ): ClientBillingItemArchivePayload
 
+  """Archive billing items asynchronously"""
+  clientBillingItemArchiveAsync(
+    """Parameters for ClientBillingItemArchiveAsync"""
+    input: ClientBillingItemArchiveAsyncInput!
+  ): ClientBillingItemArchiveAsyncPayload
+
   """Reschedule billing items to a different invoice date"""
   clientBillingItemReschedule(
     """Parameters for ClientBillingItemReschedule"""
@@ -7059,11 +7189,11 @@ type Mutation {
     input: ClientServicesAgreedServiceCancelInput!
   ): ClientServicesAgreedServiceCancelPayload
 
-  """Create an agreed service (Instant Bill)."""
-  clientServicesAgreedServiceCreate(
-    """Parameters for ClientServicesAgreedServiceCreate"""
-    input: ClientServicesAgreedServiceCreateInput!
-  ): ClientServicesAgreedServiceCreatePayload
+  """Set billing group on agreed service."""
+  clientServicesAgreedServiceChangeBillingGroup(
+    """Parameters for ClientServicesAgreedServiceChangeBillingGroup"""
+    input: ClientServicesAgreedServiceChangeBillingGroupInput!
+  ): ClientServicesAgreedServiceChangeBillingGroupPayload
 
   """Disable an agreed service."""
   clientServicesAgreedServiceDisable(
@@ -7102,6 +7232,12 @@ type Mutation {
     """Parameters for ClientServicesAgreedServicesExport"""
     input: ClientServicesAgreedServicesExportInput!
   ): ClientServicesAgreedServicesExportPayload
+
+  """Create Instant Bill with multiple Agreed Services."""
+  clientServicesInstantBillCreate(
+    """Parameters for ClientServicesInstantBillCreate"""
+    input: ClientServicesInstantBillCreateInput!
+  ): ClientServicesInstantBillCreatePayload
 
   """
   Maps a Client to an AppClient, creating a link which can be used by the integration that the AppClient comes from
@@ -7530,6 +7666,10 @@ type Mutation {
     """Parameters for NotificationsSettingsSetSetting"""
     input: NotificationsSettingsSetSettingInput!
   ): NotificationsSettingsSetSettingPayload
+  notificationsSettingsUnsubscribe(
+    """Parameters for NotificationsSettingsUnsubscribe"""
+    input: NotificationsSettingsUnsubscribeInput!
+  ): NotificationsSettingsUnsubscribePayload
   notificationsViewed(
     """Parameters for NotificationsViewed"""
     input: NotificationsViewedInput!
@@ -7552,6 +7692,12 @@ type Mutation {
     """Parameters for PaymentMethodRequestCreate"""
     input: PaymentMethodRequestCreateInput!
   ): PaymentMethodRequestCreatePayload
+
+  """Cancel a refund for a payment"""
+  paymentRefundCancel(
+    """Parameters for PaymentRefundCancel"""
+    input: PaymentRefundCancelInput!
+  ): PaymentRefundCancelPayload
 
   """Request a refund for a payment"""
   paymentRefundRequest(
@@ -7624,10 +7770,18 @@ type Mutation {
     """Parameters for PaymentsTermsUpdate"""
     input: PaymentsTermsUpdateInput!
   ): PaymentsTermsUpdatePayload
-  practiceBillingCancelSubscription(
-    """Parameters for practiceBillingCancelSubscription"""
-    input: practiceBillingCancelSubscriptionInput!
-  ): practiceBillingCancelSubscriptionPayload
+
+  """Exports all payment credits associated to an invoice"""
+  practiceBillingPaymentCreditsExport(
+    """Parameters for practiceBillingPaymentCreditsExport"""
+    input: practiceBillingPaymentCreditsExportInput!
+  ): practiceBillingPaymentCreditsExportPayload
+
+  """Exports all payment fees associated to an invoice"""
+  practiceBillingPaymentFeesExport(
+    """Parameters for practiceBillingPaymentFeesExport"""
+    input: practiceBillingPaymentFeesExportInput!
+  ): practiceBillingPaymentFeesExportPayload
   practiceBillingReportPaymentChallengeError(
     """Parameters for practiceBillingReportPaymentChallengeError"""
     input: practiceBillingReportPaymentChallengeErrorInput!
@@ -7783,6 +7937,12 @@ type Mutation {
     """Parameters for proposalArchive"""
     input: proposalArchiveInput!
   ): proposalArchivePayload
+
+  """Mutation to bulk delete proposals using an async job group."""
+  proposalBulkDelete(
+    """Parameters for ProposalBulkDelete"""
+    input: ProposalBulkDeleteInput!
+  ): ProposalBulkDeletePayload
 
   """Create a draft proposal and set its client if clientId is provided."""
   proposalCreate(
@@ -8184,6 +8344,12 @@ type Mutation {
     input: ProposalSetProposedServiceIncludedPriceInput!
   ): ProposalSetProposedServiceIncludedPricePayload
 
+  """Set the isAddOn flag for a Proposed Service."""
+  proposalSetProposedServiceIsAddOn(
+    """Parameters for ProposalSetProposedServiceIsAddOn"""
+    input: ProposalSetProposedServiceIsAddOnInput!
+  ): ProposalSetProposedServiceIsAddOnPayload
+
   """set the minimum for a proposed service"""
   proposalSetProposedServiceMinimumPrice(
     """Parameters for ProposalSetProposedServiceMinimumPrice"""
@@ -8469,6 +8635,10 @@ type Mutation {
     """Parameters for ProposalsBulkCreateFromRecurringTransactions"""
     input: ProposalsBulkCreateFromRecurringTransactionsInput!
   ): ProposalsBulkCreateFromRecurringTransactionsPayload
+  quickbooksSetTrackClasses(
+    """Parameters for QuickbooksSetTrackClasses"""
+    input: QuickbooksSetTrackClassesInput!
+  ): QuickbooksSetTrackClassesPayload
   quickbooksSettingsUpdate(
     """Parameters for QuickbooksSettingsUpdate"""
     input: QuickbooksSettingsUpdateInput!
@@ -8673,6 +8843,10 @@ type Mutation {
     """Parameters for ProposalsBulkCreateFromRepeatingInvoices"""
     input: ProposalsBulkCreateFromRepeatingInvoicesInput!
   ): ProposalsBulkCreateFromRepeatingInvoicesPayload
+  xeroSettingsUpdate(
+    """Parameters for XeroSettingsUpdate"""
+    input: XeroSettingsUpdateInput!
+  ): XeroSettingsUpdatePayload
   xeroTaxRateMappingCreate(
     """Parameters for XeroTaxRateMappingCreate"""
     input: XeroTaxRateMappingCreateInput!
@@ -8939,8 +9113,8 @@ input NotificationInput {
 
 type NotificationsActor {
   avatarUrl: URL
-  description: String
-  initials: String
+  description: String!
+  initials: String!
 }
 
 """The connection type for NotificationsNotification."""
@@ -8953,7 +9127,7 @@ type NotificationsConnection {
 
   """Information to aid in pagination."""
   pageInfo: PageInfo!
-  unseenCount: Int!
+  unseenCount(filter: NotificationsFilter): Int!
 }
 
 """Type for filtering Notifications"""
@@ -8979,7 +9153,8 @@ type NotificationsMarkAllReadBeforeTimePayload {
   clientMutationId: String
 
   """Notifications marked as read"""
-  notifications: [NotificationsNotification!]!
+  markedAsRead(filter: NotificationsFilter): [NotificationsNotification!]!
+  notifications: [NotificationsNotification!] @deprecated(reason: "Use markedAsRead instead")
   user: User!
 }
 
@@ -8994,6 +9169,9 @@ input NotificationsMarkAsReadInput {
 type NotificationsMarkAsReadPayload {
   """A unique identifier for the client performing the mutation."""
   clientMutationId: String
+
+  """Notifications marked as read"""
+  markedAsRead: [NotificationsNotification!]!
   user: User!
 }
 
@@ -9069,6 +9247,7 @@ input NotificationsSettingsSetScopeInput {
 type NotificationsSettingsSetScopePayload {
   """A unique identifier for the client performing the mutation."""
   clientMutationId: String
+  scope: NotificationsSettingsScope!
   user: User!
 }
 
@@ -9085,13 +9264,16 @@ input NotificationsSettingsSetSettingInput {
 type NotificationsSettingsSetSettingPayload {
   """A unique identifier for the client performing the mutation."""
   clientMutationId: String
+  setting: NotificationsSettingsSetting
   user: User!
 }
 
 type NotificationsSettingsSetting {
-  channelSetting: [NotificationsSettingsChannelSetting!]!
+  channelSetting: [NotificationsSettingsChannelSetting!]! @deprecated(reason: "Use `channelSettings` instead")
+  channelSettings: [NotificationsSettingsChannelSetting!]!
   group: NotificationsSettingsGroup!
-  settingId: NotificationsSettingsSettingId!
+  settingId: NotificationsSettingsSettingId! @deprecated(reason: "Use `settingKey` instead")
+  settingKey: NotificationsSettingsSettingId!
 }
 
 enum NotificationsSettingsSettingId {
@@ -9102,6 +9284,28 @@ enum NotificationsSettingsSettingId {
 type NotificationsSettingsSettings {
   scope: NotificationsSettingsScope!
   settings: [NotificationsSettingsSetting!]!
+}
+
+"""Autogenerated input type of NotificationsSettingsUnsubscribe"""
+input NotificationsSettingsUnsubscribeInput {
+  """A unique identifier for the client performing the mutation."""
+  clientMutationId: String
+
+  """ID (slug) of the email delivery"""
+  deliveryId: ID!
+}
+
+"""Autogenerated return type of NotificationsSettingsUnsubscribe."""
+type NotificationsSettingsUnsubscribePayload {
+  """A unique identifier for the client performing the mutation."""
+  clientMutationId: String
+  setting: NotificationsSettingsSetting
+  user: User!
+}
+
+"""Autogenerated return type of notificationsUnseenCountChanged."""
+type notificationsUnseenCountChangedPayload {
+  unseenCount: Int!
 }
 
 """Autogenerated input type of NotificationsViewed"""
@@ -9161,6 +9365,7 @@ enum OriginSourceTypeEnum {
   PROJECT
   PROPOSAL
   CLIENT
+  INSTANT_BILL
 }
 
 """Information about pagination in a connection."""
@@ -9370,7 +9575,6 @@ type PaymentGatewayEdge {
 A method for making payments; mainly Credit Card and Direct Debit methods.
 """
 type PaymentMethod {
-  bacsDebitMandateUrl: URL @deprecated(reason: "replaced by usage of StripeJS on the frontend")
   createdAt: DateTime!
   displayMethodType: String!
   displayName: String!
@@ -9405,7 +9609,9 @@ type PaymentMethod {
   """
   surchargeRate: Percentage!
   type: PaymentMethodType!
+  verificationStatus: PaymentMethodVerificationStatus @deprecated(reason: "Use verificationUrlStatus instead")
   verificationUrl: URL
+  verificationUrlStatus: PaymentMethodVerificationUrlStatus
 }
 
 """Options for payment method acceptance status"""
@@ -9581,10 +9787,40 @@ enum PaymentMethodType {
   BANK_ACCOUNT
 }
 
+"""Payment method verification statuses"""
+enum PaymentMethodVerificationStatus {
+  UNVERIFIED
+  VERIFIED
+  EXPIRED
+}
+
+"""Payment method verification URL statuses"""
+enum PaymentMethodVerificationUrlStatus {
+  UNVERIFIED
+  VERIFIED
+  EXPIRED
+}
+
 type PaymentNotificationSettings {
   sendNotifications: Boolean!
   tenantId: ID!
   useDefaultSettings: Boolean!
+}
+
+"""Autogenerated input type of PaymentRefundCancel"""
+input PaymentRefundCancelInput {
+  """A unique identifier for the client performing the mutation."""
+  clientMutationId: String
+
+  """Refund ID"""
+  id: ID!
+}
+
+"""Autogenerated return type of PaymentRefundCancel."""
+type PaymentRefundCancelPayload {
+  """A unique identifier for the client performing the mutation."""
+  clientMutationId: String
+  refund: PaymentsRefund!
 }
 
 """Autogenerated input type of PaymentRefundRequest"""
@@ -9879,6 +10115,8 @@ enum PaymentsDisputeState {
 }
 
 type PaymentSettings {
+  allowedPaymentGatewayMethodTypes(scopeId: ID): [String!]
+
   """State of payments collections setting"""
   collectionsState: PaymentsCollectionsSettingState!
 
@@ -9899,6 +10137,9 @@ type PaymentSettings {
 
   """ID of current payments settings"""
   id: ID!
+
+  """Whether failed payments will be automatically retried"""
+  isAutoRetryEnabled: Boolean!
 
   """Are disbursals enabled?"""
   isDisbursalsEnabled: Boolean!
@@ -10010,6 +10251,7 @@ enum PaymentsRefundState {
   STARTED
   COMPLETED
   FAILED
+  CANCELED
 }
 
 """Autogenerated input type of PaymentStartCollection"""
@@ -10194,6 +10436,10 @@ type PlanEdge {
 }
 
 enum PlanNameEnum {
+  CORE2024
+  PRO2024
+  PROPLUS2024
+  BOOKKEEPER2024
   CORE
   PRO
   PROPLUS
@@ -10218,6 +10464,7 @@ enum PlanNameEnum {
 }
 
 enum PlanVersion {
+  JUL_2024
   NOV_2023
   JUNE_2018
   JUNE_2015
@@ -10346,6 +10593,7 @@ type PracticeBilling {
 
   """Eligible plans for coupon redemption."""
   eligibleBillingPlans(couponCode: String!): [PracticeBillingEligibleBillingPlan!]
+  invoice(id: ID!): PracticeBillingInvoice
   invoices(
     """Returns the elements in the list that come after the specified cursor."""
     after: String
@@ -10362,6 +10610,38 @@ type PracticeBilling {
     last: Int
   ): PracticeBillingInvoiceConnection!
   paymentChallenge: PracticeBillingPaymentChallenge
+  paymentCredits(
+    """Returns the elements in the list that come after the specified cursor."""
+    after: String
+
+    """
+    Returns the elements in the list that come before the specified cursor.
+    """
+    before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
+    filter: PracticeBillingPaymentCreditFilter
+  ): PracticeBillingPaymentCreditConnection!
+  paymentFees(
+    """Returns the elements in the list that come after the specified cursor."""
+    after: String
+
+    """
+    Returns the elements in the list that come before the specified cursor.
+    """
+    before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
+    filter: PracticeBillingPaymentFeeFilter
+  ): PracticeBillingPaymentFeeConnection!
   paymentMethods: [PracticeBillingPaymentMethod!]!
 
   """Preview of practice's billing subscription."""
@@ -10405,21 +10685,6 @@ input PracticeBillingBillingInfoInput {
   address: PracticeBillingAddressInput
 }
 
-"""Autogenerated input type of practiceBillingCancelSubscription"""
-input practiceBillingCancelSubscriptionInput {
-  """A unique identifier for the client performing the mutation."""
-  clientMutationId: String
-  exitSurvey: ExitSurveyInputType!
-}
-
-"""Autogenerated return type of practiceBillingCancelSubscription."""
-type practiceBillingCancelSubscriptionPayload {
-  """A unique identifier for the client performing the mutation."""
-  clientMutationId: String
-  exitSurvey: ExitSurvey!
-  practice: Practice!
-}
-
 type PracticeBillingClientProduct implements PracticeBillingProduct {
   category: PracticeBillingProductCategory!
   description: String!
@@ -10434,7 +10699,14 @@ type PracticeBillingCoupon {
 
   """The discount amount to display to the user"""
   displayDiscount: String!
+
+  """The date the coupon expires"""
   expiryDate: Date
+
+  """
+  The plans that this coupon is eligible for, empty if all plans are eligible
+  """
+  planRestrictions: [PracticeBillingPlan!]!
   type: String!
 }
 
@@ -10465,12 +10737,47 @@ type PracticeBillingInvoice {
   amount: Money!
   amountWithTax: Money!
   createdOn: Date!
+  creditEnabled: Boolean!
   id: ID!
   items: [PracticeBillingInvoiceItem!]!
+  paymentCredits(
+    """Returns the elements in the list that come after the specified cursor."""
+    after: String
+
+    """
+    Returns the elements in the list that come before the specified cursor.
+    """
+    before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
+    filter: PracticeBillingPaymentCreditFilter
+  ): PracticeBillingPaymentCreditConnection!
+  paymentFeeDescriptions: [String!]!
+  paymentFees(
+    """Returns the elements in the list that come after the specified cursor."""
+    after: String
+
+    """
+    Returns the elements in the list that come before the specified cursor.
+    """
+    before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
+    filter: PracticeBillingPaymentFeeFilter
+  ): PracticeBillingPaymentFeeConnection!
   pdfUrl: URL!
   reference: String!
   status: PracticeBillingInvoiceStatus!
   taxAmount: Money!
+  totalCreditCarriedForwardToNextInvoiceAmount: Money!
 }
 
 """The connection type for PracticeBillingInvoice."""
@@ -10535,12 +10842,136 @@ enum PracticeBillingPaymentChallengeTypeEnum {
   SECURE_3D_2
 }
 
+type PracticeBillingPaymentCredit {
+  amount: Money!
+  amountWithTax: Money!
+  collection: Collection!
+  id: ID!
+}
+
+"""The connection type for PracticeBillingPaymentCredit."""
+type PracticeBillingPaymentCreditConnection {
+  """A list of edges."""
+  edges: [PracticeBillingPaymentCreditEdge!]!
+
+  """A list of nodes."""
+  nodes: [PracticeBillingPaymentCredit!]!
+
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+  totalAmount: Money!
+  totalAmountWithTax: Money!
+  totalCount: Int!
+}
+
+"""An edge in a connection."""
+type PracticeBillingPaymentCreditEdge {
+  """A cursor for use in pagination."""
+  cursor: String!
+
+  """The item at the end of the edge."""
+  node: PracticeBillingPaymentCredit!
+}
+
+input PracticeBillingPaymentCreditFilter {
+  carriedForward: Boolean
+
+  """Only use this filter when you filtering credits of an invoice"""
+  carriedForwardFromLastInvoice: Boolean
+  stateEq: PracticeBillingPaymentCreditState
+  appliedToSameInvoice: Boolean
+}
+
+"""Autogenerated input type of practiceBillingPaymentCreditsExport"""
+input practiceBillingPaymentCreditsExportInput {
+  """A unique identifier for the client performing the mutation."""
+  clientMutationId: String
+
+  """Invoice ID"""
+  id: ID!
+  filter: PracticeBillingPaymentCreditFilter
+}
+
+"""Autogenerated return type of practiceBillingPaymentCreditsExport."""
+type practiceBillingPaymentCreditsExportPayload {
+  """A unique identifier for the client performing the mutation."""
+  clientMutationId: String
+  export: Export!
+}
+
+enum PracticeBillingPaymentCreditState {
+  UNCREDITED
+  CREDITED
+  CANCELED
+}
+
+type PracticeBillingPaymentFee {
+  amount: Money!
+  amountWithTax: Money!
+  collection: Collection!
+  creditStatus: PracticeBillingPaymentFeeCreditStatus!
+  description: String
+  id: ID!
+  shortDescription: String
+}
+
+"""The connection type for PracticeBillingPaymentFee."""
+type PracticeBillingPaymentFeeConnection {
+  """A list of edges."""
+  edges: [PracticeBillingPaymentFeeEdge!]!
+
+  """A list of nodes."""
+  nodes: [PracticeBillingPaymentFee!]!
+
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+  totalAmount: Money!
+  totalAmountWithTax: Money!
+  totalCount: Int!
+}
+
+enum PracticeBillingPaymentFeeCreditStatus {
+  APPLIED
+  NOT_APPLIED
+  NOT_APPLICABLE
+}
+
+"""An edge in a connection."""
+type PracticeBillingPaymentFeeEdge {
+  """A cursor for use in pagination."""
+  cursor: String!
+
+  """The item at the end of the edge."""
+  node: PracticeBillingPaymentFee!
+}
+
+input PracticeBillingPaymentFeeFilter {
+  creditCarriedForwardToNextInvoice: Boolean
+  creditAppliedToSameInvoice: Boolean
+}
+
 type PracticeBillingPaymentFeeProduct implements PracticeBillingProduct {
   category: PracticeBillingProductCategory!
   description: String!
   name: String!
   percentagePrice: PracticeBillingPercentagePrice!
   price: PracticeBillingMoneyPrice!
+}
+
+"""Autogenerated input type of practiceBillingPaymentFeesExport"""
+input practiceBillingPaymentFeesExportInput {
+  """A unique identifier for the client performing the mutation."""
+  clientMutationId: String
+
+  """Invoice ID"""
+  id: ID!
+}
+
+"""Autogenerated return type of practiceBillingPaymentFeesExport."""
+type practiceBillingPaymentFeesExportPayload {
+  """A unique identifier for the client performing the mutation."""
+  clientMutationId: String
+  export: Export!
 }
 
 type PracticeBillingPaymentMethod {
@@ -10568,6 +10999,7 @@ type PracticeBillingPlan {
   Combination of specific tier and frequency ie. '2018-professional-monthly'
   """
   code: String
+  frequency: PracticeBillingPlanFrequency!
   id: ID!
   isCustom: Boolean!
   isLegacy: Boolean!
@@ -10591,6 +11023,10 @@ input PracticeBillingPlanInput {
 }
 
 enum PracticeBillingPlanNameEnum {
+  PROPLUS2024
+  BOOKKEEPER2024
+  PRO2024
+  CORE2024
   PROPLUS
   BOOKKEEPER
   PRO
@@ -11688,12 +12124,6 @@ enum ProposalBillingGroupedBy {
   proposals, but services from different projects may be billed together.
   """
   PROPOSAL
-
-  """
-  Services from this proposal will be billed separately for each project, and
-  will not be combined with services from other proposals or projects.
-  """
-  PROJECT
 }
 
 union ProposalBillingGroupSource = Client | Project | Proposal
@@ -11809,6 +12239,22 @@ interface ProposalBillingStrategyInterface {
 enum ProposalBillingStrategyType {
   ONCE_OFF
   RECURRING
+}
+
+"""Autogenerated input type of ProposalBulkDelete"""
+input ProposalBulkDeleteInput {
+  """A unique identifier for the client performing the mutation."""
+  clientMutationId: String
+  ids: [ID!]!
+}
+
+"""Autogenerated return type of ProposalBulkDelete."""
+type ProposalBulkDeletePayload {
+  """Async Job Group for the proposals being deleted in the background"""
+  asyncJobGroup: AsyncJobGroup
+
+  """A unique identifier for the client performing the mutation."""
+  clientMutationId: String
 }
 
 """The connection type for Proposal."""
@@ -12163,8 +12609,14 @@ type ProposalFixedPrice implements ProposalPriceInterface {
   amountWithTax: Money!
   currency: Currency!
 
+  """Description of the price rule, respecting practice level tax rules"""
+  description: String!
+
   """Price display without tax"""
   display: String!
+
+  """Human readable name of the price rule type"""
+  displayName: String!
 
   """Total Price display with discount, without tax"""
   displayTotalAmount: String!
@@ -12209,11 +12661,20 @@ type ProposalFixedPrice implements ProposalPriceInterface {
 type ProposalIncludedPrice implements ProposalPriceInterface {
   currency: Currency!
 
+  """Description of the price rule, respecting practice level tax rules"""
+  description: String!
+
   """Price display without tax"""
   display: String!
 
+  """Human readable name of the price rule type"""
+  displayName: String!
+
   """Total amount including discount, excluding tax in human readable form"""
   displayTotalAmount: String!
+
+  """Total amount including discount and tax in human readable form"""
+  displayTotalAmountWithTax: String!
 
   """The total discount, in human readable form"""
   displayTotalDiscountAmount: String!
@@ -12300,11 +12761,20 @@ type ProposalMinimumPrice implements ProposalPriceInterface {
   amountWithTax: Money!
   currency: Currency!
 
+  """Description of the price rule, respecting practice level tax rules"""
+  description: String!
+
   """Price display without tax"""
   display: String!
 
+  """Human readable name of the price rule type"""
+  displayName: String!
+
   """Total amount including discount, excluding tax in human readable form"""
   displayTotalAmount: String!
+
+  """Total amount including discount and tax in human readable form"""
+  displayTotalAmountWithTax: String!
 
   """The total discount, in human readable form"""
   displayTotalDiscountAmount: String!
@@ -12642,11 +13112,20 @@ type ProposalOptionSetNamePayload {
 interface ProposalPriceInterface {
   currency: Currency!
 
+  """Description of the price rule, respecting practice level tax rules"""
+  description: String!
+
   """Price display without tax"""
   display: String!
 
+  """Human readable name of the price rule type"""
+  displayName: String!
+
   """Total amount including discount, excluding tax in human readable form"""
   displayTotalAmount: String!
+
+  """Total amount including discount and tax in human readable form"""
+  displayTotalAmountWithTax: String!
 
   """The total discount, in human readable form"""
   displayTotalDiscountAmount: String!
@@ -12666,11 +13145,20 @@ interface ProposalPriceInterface {
 type ProposalPriceRange implements ProposalPriceInterface {
   currency: Currency!
 
+  """Description of the price rule, respecting practice level tax rules"""
+  description: String!
+
   """Price display without tax"""
   display: String!
 
+  """Human readable name of the price rule type"""
+  displayName: String!
+
   """Total amount including discount, excluding tax in human readable form"""
   displayTotalAmount: String!
+
+  """Total amount including discount and tax in human readable form"""
+  displayTotalAmountWithTax: String!
 
   """The total discount, in human readable form"""
   displayTotalDiscountAmount: String!
@@ -13184,7 +13672,10 @@ type ProposalResult {
   paymentRequired: Boolean!
   paymentType: String!
   paymentsEnabled: Boolean!
-  proposal: Proposal!
+
+  """The original proposal object used throughout Ignition"""
+  proposal: Proposal! @deprecated(reason: "This field is not indexed for searching; using it causes an extra database query per result object")
+  proposalResultStatus: ProposalState!
   referenceNumber: String
   remindersSentCount: Int!
   renewal: Boolean!
@@ -13198,7 +13689,7 @@ type ProposalResult {
   signatoriesCount: Int!
   signedOnBehalf: Boolean!
   signedOnBehalfBy: String
-  status: ProposalState!
+  status: ProposalState! @deprecated(reason: "Use proposalResultStatus instead.")
   termsTemplate: String
   text: String!
   unrenewableReason: String
@@ -13787,6 +14278,29 @@ input ProposalSetProposedServiceIncludedPriceInput {
 
 """Autogenerated return type of ProposalSetProposedServiceIncludedPrice."""
 type ProposalSetProposedServiceIncludedPricePayload {
+  """A unique identifier for the client performing the mutation."""
+  clientMutationId: String
+  proposal: Proposal
+  proposedService: ProposedService
+}
+
+"""Autogenerated input type of ProposalSetProposedServiceIsAddOn"""
+input ProposalSetProposedServiceIsAddOnInput {
+  """A unique identifier for the client performing the mutation."""
+  clientMutationId: String
+
+  """slug of the proposal"""
+  id: ID!
+
+  """uuid of the proposed service"""
+  proposedServiceId: ID!
+
+  """isAddOn flag"""
+  isAddOn: Boolean!
+}
+
+"""Autogenerated return type of ProposalSetProposedServiceIsAddOn."""
+type ProposalSetProposedServiceIsAddOnPayload {
   """A unique identifier for the client performing the mutation."""
   clientMutationId: String
   proposal: Proposal
@@ -14614,10 +15128,16 @@ type ProposalUnitPrice implements ProposalPriceInterface {
   amountWithTax: Money!
   currency: Currency!
 
+  """Description of the price rule, respecting practice level tax rules"""
+  description: String!
+
   """Price display without tax"""
   display: String!
 
-  """Total Price display including discount, without tax"""
+  """Human readable name of the price rule type"""
+  displayName: String!
+
+  """Total amount including discount, excluding tax in human readable form"""
   displayTotalAmount: String!
 
   """Total amount including discount and tax in human readable form"""
@@ -14970,9 +15490,12 @@ type ProposedService {
   descriptionContent: ProposalProposedServiceDescription!
   discount: BillingDiscountRuleInterface!
   id: ID!
+  invoiceStrategy: ProposalInvoiceStrategy!
+  isAddOn: Boolean!
 
   """Indicates if the proposed service was created via client renewal"""
   isRenewal: Boolean!
+  isSelectedForAcceptance: Boolean!
 
   """Ledger Items. Currently only supports Xero account"""
   ledgerItems: [LedgerItem!]
@@ -15089,7 +15612,6 @@ type Query {
     """Slug of client services agreed service"""
     id: ID!
   ): AgreedService
-  agreedServiceCreatePreview(clientId: ID!, agreedServiceInput: AgreedServiceInput!, paymentMethodId: ID, reason: String, notification: NotificationInput): AgreedServiceCreatePreview
   agreedServiceUpdatePreview(
     """Slug of client services agreed service"""
     id: ID!
@@ -15116,6 +15638,24 @@ type Query {
     filter: AppFilter
   ): AppConnection!
   asyncJobGroup(id: ID!): AsyncJobGroup
+
+  """billing items for practice"""
+  billingItems(
+    """Returns the elements in the list that come after the specified cursor."""
+    after: String
+
+    """
+    Returns the elements in the list that come before the specified cursor.
+    """
+    before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
+    filter: BillingItemFilter
+  ): ClientBillingBillingItemConnection!
   brandingTheme: BrandingTheme!
 
   """Find a Client"""
@@ -15129,6 +15669,7 @@ type Query {
 
   """List client groups"""
   clientGroups: [ClientGroup!]
+  clientImportFromAppClientsResult(asyncJobGroupId: ID!): ClientImportFromAppClientsResult!
   clientTagList: [String!]!
   clientWorkflowStrategy(
     """Slug of client workflow workflow strategy"""
@@ -15241,6 +15782,7 @@ type Query {
   ): Export
   feature(id: String!): Feature
   featureFlag(id: String!): FeatureFlag!
+  instantBillCreatePreview(clientId: ID!, agreedServicesInput: [AgreedServiceInput!]!, paymentMethodId: ID, reason: String, notification: NotificationInput): [AgreedServiceCreatePreview!]
 
   """Client Billing Invoice"""
   invoice(
@@ -15696,6 +16238,18 @@ type QuickbooksSettings {
   defaultItem: QuickbooksItem
   defaultTerms: Int!
   invoicesShowServiceDescription: Boolean!
+
+  """
+  A boolean representing if the connected account has classes per transaction line
+            enabled within the Quickbooks app
+  """
+  isClassesEnabledInQuickbooks: Boolean!
+
+  """
+  A boolean representing if the current user has the Track Classes
+            feature ("track categories" capability) enabled for Quickbooks within Ignition
+  """
+  isTrackClassesEnabled: Boolean!
   recurringTerms: Int!
   syncClientName: Boolean!
 }
@@ -15718,6 +16272,20 @@ input QuickbooksSettingsUpdateInput {
 
 """Autogenerated return type of QuickbooksSettingsUpdate."""
 type QuickbooksSettingsUpdatePayload {
+  """A unique identifier for the client performing the mutation."""
+  clientMutationId: String
+  quickbooks: quickbooks
+}
+
+"""Autogenerated input type of QuickbooksSetTrackClasses"""
+input QuickbooksSetTrackClassesInput {
+  """A unique identifier for the client performing the mutation."""
+  clientMutationId: String
+  trackClasses: Boolean!
+}
+
+"""Autogenerated return type of QuickbooksSetTrackClasses."""
+type QuickbooksSetTrackClassesPayload {
   """A unique identifier for the client performing the mutation."""
   clientMutationId: String
   quickbooks: quickbooks
@@ -16102,6 +16670,7 @@ type ScheduleItem {
   invoiceStrategy: ProposalInvoiceStrategy
   isBilled: Boolean!
   price: Money!
+  status: BillingStatusType!
 }
 
 enum ScheduleTypeEnum {
@@ -16146,6 +16715,81 @@ input SearchExportCsvInput {
 type SearchExportCsvPayload {
   """A unique identifier for the client performing the mutation."""
   clientMutationId: String
+}
+
+type SearchInvoicePaymentMethodType {
+  """An invoice's payment method display name"""
+  displayMethodType: String!
+
+  """An invoice's payment method display name"""
+  displayName: String!
+
+  """The slug of an invoice's payment method"""
+  id: ID!
+
+  """An invoice's payment method last four digits"""
+  numberSuffix: String!
+
+  """An invoice's payment method type"""
+  type: PaymentMethodType!
+}
+
+enum SearchInvoicePaymentProgressStatusLevelType {
+  SUCCESS
+  INFO
+  WARNING
+  ERROR
+}
+
+enum SearchInvoicePaymentProgressStatusType {
+  NOT_STARTED
+  CANCELED
+  COLLECTING
+  COLLECTED
+  PAYING_OUT
+  PAID_OUT
+  COLLECTION_FAILED
+  PAYOUT_FAILED
+  REFUND_REQUESTED
+  REFUND_APPROVED
+  REFUND_REQUEST_DECLINED
+  REFUND_STARTED
+  REFUND_FAILED
+  REFUNDED
+  DISPUTE_OPEN
+  DISPUTE_WON
+  DISPUTE_LOST
+  VERIFICATION_REQUESTED
+  VERIFICATION_FAILED
+  CONFIRMATION_REQUESTED
+}
+
+type SearchInvoicePaymentProgressType {
+  """An invoice's payment progress current step"""
+  currentStep: Int!
+
+  """An invoice's payment progress description"""
+  description: String
+
+  """An invoice's payment progress display name"""
+  displayName: String!
+
+  """An invoice's payment progress status"""
+  status: SearchInvoicePaymentProgressStatusType!
+
+  """An invoice's payment progress status level"""
+  statusLevel: SearchInvoicePaymentProgressStatusLevelType!
+
+  """An invoice's payment progress total steps"""
+  totalSteps: Int!
+}
+
+enum SearchInvoicePaymentStatusType {
+  UNSCHEDULED
+  SCHEDULED
+  AWAITING
+  PAID
+  FAILED
 }
 
 enum SearchNumberFilterCondition {
@@ -16221,7 +16865,7 @@ enum SearchRelativeDateFilterCondition {
   NEXT
 }
 
-union SearchResult = AppClientResult | BillingItemResult | ClientResult | IgnitionAppServiceType | ProposalCustomTemplate | ProposalProvidedTemplate | ProposalResult | QuickbooksIntegrationRecurringTransaction | Service | XeroIntegrationRepeatingInvoice
+union SearchResult = AppClientResult | BillingItemResult | ClientResult | IgnitionAppServiceType | InvoiceResult | ProposalCustomTemplate | ProposalProvidedTemplate | ProposalResult | QuickbooksIntegrationRecurringTransaction | Service | XeroIntegrationRepeatingInvoice
 
 enum SearchSortDirection {
   """asc"""
@@ -16232,9 +16876,19 @@ enum SearchSortDirection {
 }
 
 enum SearchTextFilterCondition {
+  """Matches all records of which attribute contains all values"""
   CONTAINS
-  EQUALS
+
+  """Matches all records of which attribute is a subset of values"""
+  INCLUDES
+
+  """Matches all records of which attribute is any of the values"""
   ANY_OF
+
+  """Matches all records of which attribute equals value"""
+  EQUALS
+
+  """Matches all records of which attribute has no value"""
   HAS_NO_VALUE
 }
 
@@ -16245,6 +16899,7 @@ enum SearchType {
   ASYNC_JOB
   ASYNC_JOB_GROUP
   BILLING_ITEM
+  INVOICE
   PROPOSAL_BULK_ACTION
   CLIENT_BULK_ACTION
 }
@@ -16254,7 +16909,7 @@ input SelectedTrackingOptionInput {
   categoryId: ID!
 
   """The ID of the selected option for this category"""
-  optionId: ID!
+  optionId: ID
 }
 
 """Autogenerated input type of SendDemoProposal"""
@@ -16835,7 +17490,7 @@ input ServiceRevenueExportInput {
 type ServiceRevenueExportPayload {
   """A unique identifier for the client performing the mutation."""
   clientMutationId: String
-  userErrors: [UserError!]
+  userErrors: [UserError!] @deprecated(reason: "This mutation doesn't provide user errors.")
 }
 
 """Autogenerated input type of ServicesBulkCreate"""
@@ -16930,6 +17585,8 @@ type ServiceUpdatePayload {
 }
 
 type Session {
+  """Generation type"""
+  generationType: String
   id: ID!
 
   """Latest generated text result"""
@@ -17045,7 +17702,7 @@ type Subscription {
   capabilitiesProposalImportProposalsAvailable: capabilitiesProposalImportProposalsAvailablePayload!
 
   """Count of unseen notifications has changed"""
-  notificationsUnseenCountChanged: UnseenCountChangedPayload!
+  notificationsUnseenCountChanged: notificationsUnseenCountChangedPayload!
   paymentCollected: paymentCollectedPayload!
   paymentDisbursed: paymentDisbursedPayload!
   paymentStarted: paymentStartedPayload!
@@ -17580,11 +18237,6 @@ input UnitPriceRuleInput {
 
   """Unit name"""
   unitName: String!
-}
-
-"""Autogenerated return type of UnseenCountChanged."""
-type UnseenCountChangedPayload {
-  unseenCount: Int!
 }
 
 input UpdateContactInput {
@@ -18243,6 +18895,8 @@ input WorkTemplateMappingInput {
 }
 
 type Xero {
+  brandingThemes: [XeroBrandingTheme!]!
+
   """Branding theme when payment is collected by Ignition"""
   defaultBrandingTheme: XeroBrandingTheme
   defaultInvoiceState: String
@@ -18252,6 +18906,7 @@ type Xero {
   """Automatically create invoices in Xero"""
   deployInvoices: Boolean!
   id: ID!
+  invoiceDeploySettings: InvoiceDeploySettings!
 
   """Branding theme when payment is arranged manually"""
   recurringBrandingTheme: XeroBrandingTheme
@@ -18374,6 +19029,26 @@ type xeroRepeatingInvoiceStopRemoteFailedPayload {
 
   """The repeating invoice which throws an error when we try to stop it"""
   repeatingInvoice: XeroIntegrationRepeatingInvoice!
+}
+
+"""Autogenerated input type of XeroSettingsUpdate"""
+input XeroSettingsUpdateInput {
+  """A unique identifier for the client performing the mutation."""
+  clientMutationId: String
+
+  """The ID of the branding theme when payment is collected by Ignition"""
+  defaultBrandingTheme: ID!
+
+  """The ID of the branding theme when payment is arranged manually"""
+  recurringBrandingTheme: ID!
+  invoiceDeploySettings: InvoiceDeploySettingsInput!
+}
+
+"""Autogenerated return type of XeroSettingsUpdate."""
+type XeroSettingsUpdatePayload {
+  """A unique identifier for the client performing the mutation."""
+  clientMutationId: String
+  xero: Xero
 }
 
 enum XeroState {
