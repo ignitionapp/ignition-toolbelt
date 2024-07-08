@@ -163,6 +163,8 @@ export type ActivityLog = {
   additionalInfo?: Maybe<Scalars['String']['output']>;
   createdAt: Scalars['DateTime']['output'];
   id: Scalars['ID']['output'];
+  /** @deprecated Use message. */
+  info: Scalars['String']['output'];
   level: ActivityLogLevel;
   message: Scalars['String']['output'];
   relationId: Scalars['ID']['output'];
@@ -170,6 +172,11 @@ export type ActivityLog = {
   /** The user associated with the activity (if any). */
   user?: Maybe<User>;
 };
+
+export enum ActivityLogCategory {
+  CLIENTS = 'CLIENTS',
+  PAYMENTS = 'PAYMENTS',
+}
 
 /** The connection type for ActivityLog. */
 export type ActivityLogConnection = {
@@ -189,6 +196,10 @@ export type ActivityLogEdge = {
   cursor: Scalars['String']['output'];
   /** The item at the end of the edge. */
   node: ActivityLog;
+};
+
+export type ActivityLogFilter = {
+  categoryIn?: InputMaybe<Array<ActivityLogCategory>>;
 };
 
 export enum ActivityLogLevel {
@@ -279,6 +290,7 @@ export type AgreedService = {
   activities: ActivityLogConnection;
   /** @deprecated Agreed Service can have multiple portions. Use `portion.billing_description` instead. */
   billingDescription?: Maybe<Scalars['String']['output']>;
+  billingGroup?: Maybe<BillingGroup>;
   billingMode: ProposalBillingModeEnum;
   /** @deprecated Use portions { billingSchedule } instead */
   billingSchedule: BillingSchedule;
@@ -755,6 +767,10 @@ export type AppClientProconnect = {
 
 export type AppClientResult = {
   __typename: 'AppClientResult';
+  /**
+   * The original app client object used throughout Ignition
+   * @deprecated This field is not indexed for searching; using it causes an extra database query per result object
+   */
   appClient?: Maybe<AppClient>;
   appData: AppDataUnion;
   appName: Scalars['String']['output'];
@@ -1033,11 +1049,14 @@ export enum AsyncJobGroupStateEnum {
 }
 
 export enum AsyncJobGroupTypeEnum {
+  ARCHIVE_BILLING_ITEMS = 'ARCHIVE_BILLING_ITEMS',
   CLIENT_ARCHIVE = 'CLIENT_ARCHIVE',
+  CLIENT_IMPORT_FROM_APP_CLIENTS = 'CLIENT_IMPORT_FROM_APP_CLIENTS',
   CREATED_FROM_LEDGER = 'CREATED_FROM_LEDGER',
   CREATE_PROPOSALS = 'CREATE_PROPOSALS',
   CREATE_SERVICE_FROM_ITEM = 'CREATE_SERVICE_FROM_ITEM',
   CREATE_VIA_IMPORT = 'CREATE_VIA_IMPORT',
+  DELETE_PROPOSALS = 'DELETE_PROPOSALS',
   PAYMENT_METHOD_REQUEST = 'PAYMENT_METHOD_REQUEST',
   RENEWAL = 'RENEWAL',
   SEND_PROPOSALS = 'SEND_PROPOSALS',
@@ -1220,6 +1239,8 @@ export type BillingFixedPriceRule = BillingPriceRuleInterface & {
   amount: Money;
   /** Description of the price rule */
   description: Scalars['String']['output'];
+  /** Human readable name of the price rule type */
+  displayName: Scalars['String']['output'];
   /** Type of price rule */
   type: BillingPriceRuleType;
 };
@@ -1302,6 +1323,8 @@ export type BillingIncludedPriceRule = BillingPriceRuleInterface & {
   __typename: 'BillingIncludedPriceRule';
   /** Description of the price rule */
   description: Scalars['String']['output'];
+  /** Human readable name of the price rule type */
+  displayName: Scalars['String']['output'];
   /** Type of price rule */
   type: BillingPriceRuleType;
 };
@@ -1369,8 +1392,21 @@ export type BillingItemEdge = {
 
 export type BillingItemFilter = {
   dateIn?: InputMaybe<DateRangeInput>;
+  /** Returns only records where the ids are present in this list */
+  idsIn?: InputMaybe<Array<Scalars['ID']['input']>>;
   stateIn?: InputMaybe<ClientBillingBillingItemState>;
   strategyEq?: InputMaybe<ProposalInvoiceStrategy>;
+};
+
+/** Input data for filtering billing items */
+export type BillingItemFilterInputType = {
+  booleanFilters?: InputMaybe<Array<SearchQueryBooleanFilterInput>>;
+  dateFilters?: InputMaybe<Array<SearchQueryDateFilterInput>>;
+  numberFilters?: InputMaybe<Array<SearchQueryNumberFilterInput>>;
+  pagination?: InputMaybe<PaginationInput>;
+  relativeDateFilters?: InputMaybe<Array<SearchQueryRelativeDateFilterInput>>;
+  sort?: InputMaybe<SearchQuerySortInput>;
+  textFilters?: InputMaybe<Array<SearchQueryTextFilterInput>>;
 };
 
 export type BillingItemGroup = {
@@ -1444,29 +1480,31 @@ export type BillingItemPreview = {
 
 export type BillingItemResult = {
   __typename: 'BillingItemResult';
+  /** The value of this billing item excluding tax */
+  amount?: Maybe<Money>;
+  /** The total value of this billing item, including tax */
+  amountWithTax?: Maybe<Money>;
+  billingItemStatus: ClientBillingBillingItemState;
   billingStrategy: Scalars['String']['output'];
   client: ClientResult;
-  currency: Scalars['String']['output'];
   /** The date the item should be billed */
   date: Scalars['Date']['output'];
-  /** The billing item minimum value */
-  estimatedTotalPrice: Money;
   id: Scalars['ID']['output'];
-  /** Whether the client has a payment method attached to their account */
-  paymentMethodAttached: Scalars['Boolean']['output'];
-  /** @deprecated Use priceRule { type } instead. */
-  priceRuleType: Scalars['String']['output'];
+  itemPrice:
+    | ProposalFixedPrice
+    | ProposalIncludedPrice
+    | ProposalMinimumPrice
+    | ProposalPriceRange
+    | ProposalUnitPrice;
   serviceName: Scalars['String']['output'];
-  status: ClientBillingBillingItemState;
-  text: Scalars['String']['output'];
-  /** The billing item minimum value */
-  totalPrice: Money;
 };
 
 export type BillingMinimumPriceRule = BillingPriceRuleInterface & {
   __typename: 'BillingMinimumPriceRule';
   /** Description of the price rule */
   description: Scalars['String']['output'];
+  /** Human readable name of the price rule type */
+  displayName: Scalars['String']['output'];
   /** Minimum amount */
   minimum: Money;
   /** Type of price rule */
@@ -1527,6 +1565,8 @@ export type BillingPriceRuleDeleteUnitNamePayloadCustomUnitPriceNamesArgs = {
 export type BillingPriceRuleInterface = {
   /** Description of the price rule */
   description: Scalars['String']['output'];
+  /** Human readable name of the price rule type */
+  displayName: Scalars['String']['output'];
   /** Type of price rule */
   type: BillingPriceRuleType;
 };
@@ -1556,6 +1596,8 @@ export type BillingRangePriceRule = BillingPriceRuleInterface & {
   __typename: 'BillingRangePriceRule';
   /** Description of the price rule */
   description: Scalars['String']['output'];
+  /** Human readable name of the price rule type */
+  displayName: Scalars['String']['output'];
   /** Maximum amount */
   maximum: Money;
   /** Minimum amount */
@@ -1614,12 +1656,20 @@ export type BillingStartInputType = {
   startType: ProposalStartBillingType;
 };
 
+export enum BillingStatusType {
+  ARCHIVED = 'ARCHIVED',
+  BILLED = 'BILLED',
+  UNBILLED = 'UNBILLED',
+}
+
 export type BillingUnitPriceRule = BillingPriceRuleInterface & {
   __typename: 'BillingUnitPriceRule';
   /** Amount */
   amount: Money;
   /** Description of the price rule */
   description: Scalars['String']['output'];
+  /** Human readable name of the price rule type */
+  displayName: Scalars['String']['output'];
   /** Type of price rule */
   type: BillingPriceRuleType;
   /** Name of the type of unit */
@@ -1771,6 +1821,7 @@ export enum CapabilityNameEnum {
   SERVICE_IMPORT = 'SERVICE_IMPORT',
   SMART_BILLING = 'SMART_BILLING',
   TAX_RATES = 'TAX_RATES',
+  TRACK_CATEGORIES = 'TRACK_CATEGORIES',
   USER_CONFIGURABLE = 'USER_CONFIGURABLE',
   USER_SYNC = 'USER_SYNC',
   WORKFLOW = 'WORKFLOW',
@@ -1795,6 +1846,12 @@ export type CapabilityWithState = {
   description: Scalars['String']['output'];
   name: CapabilityNameEnum;
   state: CapabilityStateEnum;
+};
+
+export type Category = {
+  __typename: 'Category';
+  id: Scalars['ID']['output'];
+  name: Scalars['String']['output'];
 };
 
 export type ChangedValue = {
@@ -1866,7 +1923,6 @@ export type Client = {
   automaticBillingGroup?: Maybe<BillingItemGroup>;
   automaticBillingGroups: BillingItemGroupConnection;
   billableServices: BillableServiceConnection;
-  billingGroup?: Maybe<BillingGroup>;
   billingGroups: BillingGroupConnection;
   billingItem?: Maybe<BillingItem>;
   /** unbilled billing items */
@@ -1937,6 +1993,7 @@ export type Client = {
 export type ClientActivitiesArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   before?: InputMaybe<Scalars['String']['input']>;
+  filter?: InputMaybe<ActivityLogFilter>;
   first?: InputMaybe<Scalars['Int']['input']>;
   last?: InputMaybe<Scalars['Int']['input']>;
   orderBy?: InputMaybe<ActivityLogOrder>;
@@ -1992,17 +2049,13 @@ export type ClientBillableServicesArgs = {
 };
 
 /** A client of a practice for which proposals are created. */
-export type ClientBillingGroupArgs = {
-  id: Scalars['ID']['input'];
-};
-
-/** A client of a practice for which proposals are created. */
 export type ClientBillingGroupsArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   before?: InputMaybe<Scalars['String']['input']>;
   filter?: InputMaybe<ClientBillingBillingGroupFilter>;
   first?: InputMaybe<Scalars['Int']['input']>;
   last?: InputMaybe<Scalars['Int']['input']>;
+  sort?: InputMaybe<SearchQuerySortInput>;
 };
 
 /** A client of a practice for which proposals are created. */
@@ -2129,6 +2182,8 @@ export type ClientBillingBillingItemConnection = {
   count: Scalars['Int']['output'];
   /** A list of edges. */
   edges: Array<ClientBillingBillingItemEdge>;
+  /** Whether there are any existing billing items at all */
+  hasItems: Scalars['Boolean']['output'];
   /** A list of nodes. */
   nodes: Array<BillingItem>;
   /** Information to aid in pagination. */
@@ -2321,7 +2376,7 @@ export type ClientBillingInvoiceItem = {
   name: Scalars['String']['output'];
   notes?: Maybe<Scalars['String']['output']>;
   origin?: Maybe<Origin>;
-  position?: Maybe<Scalars['Int']['output']>;
+  position: Scalars['Int']['output'];
   quantity: Scalars['Decimal']['output'];
   /** The type of tax applied to this item */
   tax: Tax;
@@ -2395,6 +2450,24 @@ export enum ClientBillingInvoiceState {
   DELETED = 'DELETED',
   ISSUED = 'ISSUED',
 }
+
+/** Autogenerated input type of ClientBillingItemArchiveAsync */
+export type ClientBillingItemArchiveAsyncInput = {
+  /** A unique identifier for the client performing the mutation. */
+  clientMutationId?: InputMaybe<Scalars['String']['input']>;
+  searchFilters?: InputMaybe<BillingItemFilterInputType>;
+  selectAll?: InputMaybe<Scalars['Boolean']['input']>;
+  selectedBillingItemIds?: InputMaybe<Array<Scalars['ID']['input']>>;
+};
+
+/** Autogenerated return type of ClientBillingItemArchiveAsync. */
+export type ClientBillingItemArchiveAsyncPayload = {
+  __typename: 'ClientBillingItemArchiveAsyncPayload';
+  /** Async Job Group for the app clients being imported in the background */
+  asyncJobGroup?: Maybe<AsyncJobGroup>;
+  /** A unique identifier for the client performing the mutation. */
+  clientMutationId?: Maybe<Scalars['String']['output']>;
+};
 
 /** Autogenerated input type of ClientBillingItemArchive */
 export type ClientBillingItemArchiveInput = {
@@ -2652,6 +2725,18 @@ export type ClientImportFromAppClientsPayload = {
   clientMutationId?: Maybe<Scalars['String']['output']>;
 };
 
+export type ClientImportFromAppClientsResult = {
+  __typename: 'ClientImportFromAppClientsResult';
+  /** Name of the app that clients were imported from */
+  appName: Scalars['String']['output'];
+  /** App Client IDs that failed to import */
+  failedAppClientIds: Array<Scalars['ID']['output']>;
+  /** Client IDs that were created from import */
+  importedClientIds: Array<Scalars['ID']['output']>;
+  /** Client IDs that were linked with app clients */
+  linkedClientIds: Array<Scalars['ID']['output']>;
+};
+
 /** Autogenerated input type of ClientImport */
 export type ClientImportInput = {
   /** A unique identifier for the client performing the mutation. */
@@ -2781,6 +2866,10 @@ export type ClientRemoveSignatoryPayload = {
 
 export type ClientResult = {
   __typename: 'ClientResult';
+  /**
+   * The original client object used throughout Ignition
+   * @deprecated This field is not indexed for searching; using it causes an extra database query per result object
+   */
   client: Client;
   createdAt: Scalars['DateTime']['output'];
   groupContactEmail?: Maybe<Scalars['String']['output']>;
@@ -2814,22 +2903,19 @@ export type ClientServicesAgreedServiceCancelPayload = {
   clientMutationId?: Maybe<Scalars['String']['output']>;
 };
 
-/** Autogenerated input type of ClientServicesAgreedServiceCreate */
-export type ClientServicesAgreedServiceCreateInput = {
-  agreedServiceInput: AgreedServiceInput;
-  /** Client slug */
-  clientId: Scalars['ID']['input'];
+/** Autogenerated input type of ClientServicesAgreedServiceChangeBillingGroup */
+export type ClientServicesAgreedServiceChangeBillingGroupInput = {
+  /** Agreed Service ID */
+  agreedServiceId: Scalars['ID']['input'];
+  /** Billing Group ID */
+  billingGroupId: Scalars['ID']['input'];
   /** A unique identifier for the client performing the mutation. */
   clientMutationId?: InputMaybe<Scalars['String']['input']>;
-  notification?: InputMaybe<NotificationInput>;
-  /** Payment method slug */
-  paymentMethodId?: InputMaybe<Scalars['ID']['input']>;
-  reason?: InputMaybe<Scalars['String']['input']>;
 };
 
-/** Autogenerated return type of ClientServicesAgreedServiceCreate. */
-export type ClientServicesAgreedServiceCreatePayload = {
-  __typename: 'ClientServicesAgreedServiceCreatePayload';
+/** Autogenerated return type of ClientServicesAgreedServiceChangeBillingGroup. */
+export type ClientServicesAgreedServiceChangeBillingGroupPayload = {
+  __typename: 'ClientServicesAgreedServiceChangeBillingGroupPayload';
   agreedService: AgreedService;
   /** A unique identifier for the client performing the mutation. */
   clientMutationId?: Maybe<Scalars['String']['output']>;
@@ -2947,6 +3033,29 @@ export type ClientServicesAgreedServicesExportInput = {
 export type ClientServicesAgreedServicesExportPayload = {
   __typename: 'ClientServicesAgreedServicesExportPayload';
   backgroundJob: BackgroundJob;
+  /** A unique identifier for the client performing the mutation. */
+  clientMutationId?: Maybe<Scalars['String']['output']>;
+};
+
+/** Autogenerated input type of ClientServicesInstantBillCreate */
+export type ClientServicesInstantBillCreateInput = {
+  agreedServicesInput: Array<AgreedServiceInput>;
+  /** Billing Group ID */
+  billingGroupId?: InputMaybe<Scalars['ID']['input']>;
+  /** Client ID */
+  clientId: Scalars['ID']['input'];
+  /** A unique identifier for the client performing the mutation. */
+  clientMutationId?: InputMaybe<Scalars['String']['input']>;
+  notification?: InputMaybe<NotificationInput>;
+  /** Payment method ID */
+  paymentMethodId?: InputMaybe<Scalars['ID']['input']>;
+  reason?: InputMaybe<Scalars['String']['input']>;
+};
+
+/** Autogenerated return type of ClientServicesInstantBillCreate. */
+export type ClientServicesInstantBillCreatePayload = {
+  __typename: 'ClientServicesInstantBillCreatePayload';
+  agreedServices: Array<AgreedService>;
   /** A unique identifier for the client performing the mutation. */
   clientMutationId?: Maybe<Scalars['String']['output']>;
 };
@@ -3587,6 +3696,7 @@ export type ContactInput = {
   email?: InputMaybe<Scalars['EmailAddress']['input']>;
   id?: InputMaybe<Scalars['ID']['input']>;
   isDefault?: InputMaybe<Scalars['Boolean']['input']>;
+  isDefaultSignatory?: InputMaybe<Scalars['Boolean']['input']>;
   isRecipient?: InputMaybe<Scalars['Boolean']['input']>;
   mobile?: InputMaybe<Scalars['String']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
@@ -4994,39 +5104,6 @@ export type EstimateQuantityRuleInput = {
   amount: Scalars['Decimal']['input'];
 };
 
-export type ExitSurvey = {
-  __typename: 'ExitSurvey';
-  /** Date user left ignition and submitted survey */
-  createdAt: Scalars['DateTime']['output'];
-  /** Any feedback as to reason for leaving */
-  feedback?: Maybe<Scalars['String']['output']>;
-  /** Any other payments tool that user will be using */
-  paymentAlternative?: Maybe<Scalars['String']['output']>;
-  practiceId: Scalars['ID']['output'];
-  /** Any other proposal tool that user will be using */
-  proposalAlternative?: Maybe<Scalars['String']['output']>;
-  /** Reason for leaving ignition */
-  reason?: Maybe<Scalars['String']['output']>;
-  /** On a scale of 1-10 how likely is an user to come back */
-  returnLikelihood?: Maybe<Scalars['Int']['output']>;
-  userId: Scalars['ID']['output'];
-  uuid: Scalars['ID']['output'];
-};
-
-/** Input fields for an exit survey */
-export type ExitSurveyInputType = {
-  /** Any feedback as to reason for leaving */
-  feedback: Scalars['String']['input'];
-  /** Any other payments tool that user will be using */
-  paymentAlternative?: InputMaybe<Scalars['String']['input']>;
-  /** Any other proposal tool that user will be using */
-  proposalAlternative?: InputMaybe<Scalars['String']['input']>;
-  /** Reason for leaving */
-  reason: Scalars['String']['input'];
-  /** On a scale of 1-10 how likely is an user to come back */
-  returnLikelihood?: InputMaybe<Scalars['Int']['input']>;
-};
-
 export type Export = {
   __typename: 'Export';
   id: Scalars['ID']['output'];
@@ -5442,6 +5519,45 @@ export type InvoiceNotificationSettings = {
   useDefaultSettings: Scalars['Boolean']['output'];
 };
 
+export type InvoiceResult = {
+  __typename: 'InvoiceResult';
+  /** @deprecated Use amount_with_tax instead */
+  amount: Money;
+  /** The invoice's total amount including tax */
+  amountWithTax: Money;
+  /** The invoice's issue date */
+  billedOn?: Maybe<Scalars['Date']['output']>;
+  /** The client index record relating to the invoice's client */
+  client: ClientResult;
+  /** The invoice's scheduled or actual collection date */
+  collectionOn?: Maybe<Scalars['Date']['output']>;
+  /** When the invoice index record was created */
+  createdAt: Scalars['DateTime']['output'];
+  /**
+   * When the invoice was created
+   * @deprecated Use billed_on
+   */
+  createdOn: Scalars['Date']['output'];
+  /** The deployed invoice's number in an external ledger */
+  externalNumber?: Maybe<Scalars['String']['output']>;
+  /** The deployed invoice's URL in an external ledger */
+  externalUrl?: Maybe<Scalars['String']['output']>;
+  /** The slug of the invoice that has been indexed */
+  id: Scalars['ID']['output'];
+  /** The invoice payment's collection or payout failure date, when relevant */
+  paymentFailedOn?: Maybe<Scalars['Date']['output']>;
+  /** The invoice's payment method */
+  paymentMethod?: Maybe<SearchInvoicePaymentMethodType>;
+  /** The invoice's payment progress */
+  paymentProgress?: Maybe<SearchInvoicePaymentProgressType>;
+  /** The invoice's payment status */
+  paymentStatus: SearchInvoicePaymentStatusType;
+  /** The invoice's estimated or actual payout date */
+  payoutOn?: Maybe<Scalars['Date']['output']>;
+  /** When the invoice index record was last updated */
+  updatedAt: Scalars['DateTime']['output'];
+};
+
 export type Ipm = {
   __typename: 'Ipm';
   apiKey?: Maybe<Scalars['String']['output']>;
@@ -5717,6 +5833,7 @@ export type LedgerItem = {
   __typename: 'LedgerItem';
   /** Ledger app */
   app: App;
+  category?: Maybe<Category>;
   /** Ledger Items with the same grouping should be displayed together */
   grouping?: Maybe<Scalars['String']['output']>;
   /** Slug of ledger item */
@@ -5978,6 +6095,8 @@ export type Mutation = {
   clientBillingInvoiceSendInvoiceToClientEmail?: Maybe<ClientBillingInvoiceSendInvoiceToClientEmailPayload>;
   /** Archive billing items */
   clientBillingItemArchive?: Maybe<ClientBillingItemArchivePayload>;
+  /** Archive billing items asynchronously */
+  clientBillingItemArchiveAsync?: Maybe<ClientBillingItemArchiveAsyncPayload>;
   /** Reschedule billing items to a different invoice date */
   clientBillingItemReschedule?: Maybe<ClientBillingItemReschedulePayload>;
   /** Archives the clients */
@@ -5997,8 +6116,8 @@ export type Mutation = {
   clientRemoveSignatory?: Maybe<ClientRemoveSignatoryPayload>;
   /** Cancel an agreed service. */
   clientServicesAgreedServiceCancel?: Maybe<ClientServicesAgreedServiceCancelPayload>;
-  /** Create an agreed service (Instant Bill). */
-  clientServicesAgreedServiceCreate?: Maybe<ClientServicesAgreedServiceCreatePayload>;
+  /** Set billing group on agreed service. */
+  clientServicesAgreedServiceChangeBillingGroup?: Maybe<ClientServicesAgreedServiceChangeBillingGroupPayload>;
   /** Disable an agreed service. */
   clientServicesAgreedServiceDisable?: Maybe<ClientServicesAgreedServiceDisablePayload>;
   /** Disable all agreed services for a client. */
@@ -6011,6 +6130,8 @@ export type Mutation = {
   clientServicesAgreedServiceUpdate?: Maybe<ClientServicesAgreedServiceUpdatePayload>;
   /** Exports clients' agreed services */
   clientServicesAgreedServicesExport?: Maybe<ClientServicesAgreedServicesExportPayload>;
+  /** Create Instant Bill with multiple Agreed Services. */
+  clientServicesInstantBillCreate?: Maybe<ClientServicesInstantBillCreatePayload>;
   /** Maps a Client to an AppClient, creating a link which can be used by the integration that the AppClient comes from */
   clientSetAppMapping?: Maybe<ClientSetAppMappingPayload>;
   /** Update client's deploy invoices flag. */
@@ -6149,6 +6270,7 @@ export type Mutation = {
   notificationsMarkAsRead?: Maybe<NotificationsMarkAsReadPayload>;
   notificationsSettingsSetScope?: Maybe<NotificationsSettingsSetScopePayload>;
   notificationsSettingsSetSetting?: Maybe<NotificationsSettingsSetSettingPayload>;
+  notificationsSettingsUnsubscribe?: Maybe<NotificationsSettingsUnsubscribePayload>;
   notificationsViewed?: Maybe<NotificationsViewedPayload>;
   /** Cancels an uncollected payment */
   paymentCancel?: Maybe<PaymentCancelPayload>;
@@ -6156,6 +6278,8 @@ export type Mutation = {
   paymentMethodCreateFromSetupIntent?: Maybe<PaymentMethodCreateFromSetupIntentPayload>;
   /** Request payment method from a client. Does not send an email */
   paymentMethodRequestCreate?: Maybe<PaymentMethodRequestCreatePayload>;
+  /** Cancel a refund for a payment */
+  paymentRefundCancel?: Maybe<PaymentRefundCancelPayload>;
   /** Request a refund for a payment */
   paymentRefundRequest?: Maybe<PaymentRefundRequestPayload>;
   /** Schedule collection of a payment */
@@ -6178,7 +6302,10 @@ export type Mutation = {
   /** Allow the practice to use surcharges to pass on payment fees to their clients */
   paymentsSurchargeEnable?: Maybe<SurchargeEnablePayload>;
   paymentsTermsUpdate?: Maybe<PaymentsTermsUpdatePayload>;
-  practiceBillingCancelSubscription?: Maybe<PracticeBillingCancelSubscriptionPayload>;
+  /** Exports all payment credits associated to an invoice */
+  practiceBillingPaymentCreditsExport?: Maybe<PracticeBillingPaymentCreditsExportPayload>;
+  /** Exports all payment fees associated to an invoice */
+  practiceBillingPaymentFeesExport?: Maybe<PracticeBillingPaymentFeesExportPayload>;
   practiceBillingReportPaymentChallengeError?: Maybe<PracticeBillingReportPaymentChallengeErrorPayload>;
   practiceBillingResolvePaymentChallenge?: Maybe<PracticeBillingResolvePaymentChallengePayload>;
   practiceBillingSetSubscription?: Maybe<PracticeBillingSetSubscriptionPayload>;
@@ -6231,6 +6358,8 @@ export type Mutation = {
   proposalAddWorkflowStrategyTemplate?: Maybe<ProposalAddWorkflowStrategyTemplatePayload>;
   /** archives a proposal */
   proposalArchive?: Maybe<ProposalArchivePayload>;
+  /** Mutation to bulk delete proposals using an async job group. */
+  proposalBulkDelete?: Maybe<ProposalBulkDeletePayload>;
   /** Create a draft proposal and set its client if clientId is provided. */
   proposalCreate?: Maybe<ProposalCreatePayload>;
   /** Create multiple proposals */
@@ -6367,6 +6496,8 @@ export type Mutation = {
   proposalSetProposedServiceFixedPrice?: Maybe<ProposalSetProposedServiceFixedPricePayload>;
   /** set included price for a proposed service */
   proposalSetProposedServiceIncludedPrice?: Maybe<ProposalSetProposedServiceIncludedPricePayload>;
+  /** Set the isAddOn flag for a Proposed Service. */
+  proposalSetProposedServiceIsAddOn?: Maybe<ProposalSetProposedServiceIsAddOnPayload>;
   /** set the minimum for a proposed service */
   proposalSetProposedServiceMinimumPrice?: Maybe<ProposalSetProposedServiceMinimumPricePayload>;
   /** set invoice strategy of a proposed service portion */
@@ -6461,6 +6592,7 @@ export type Mutation = {
   quickbooksEnable?: Maybe<QuickbooksEnablePayload>;
   /** Create proposals from recurring transactions */
   quickbooksProposalsBulkCreateFromRecurringTransactions?: Maybe<ProposalsBulkCreateFromRecurringTransactionsPayload>;
+  quickbooksSetTrackClasses?: Maybe<QuickbooksSetTrackClassesPayload>;
   quickbooksSettingsUpdate?: Maybe<QuickbooksSettingsUpdatePayload>;
   quickbooksTaxCodeMappingCreate?: Maybe<QuickbooksTaxCodeMappingCreatePayload>;
   quickbooksTaxCodeMappingsUpdate?: Maybe<QuickbooksTaxCodeMappingsUpdatePayload>;
@@ -6520,6 +6652,7 @@ export type Mutation = {
   userUploadAvatar?: Maybe<UploadAvatarPayload>;
   /** Create proposals from repeating invoices */
   xeroProposalsBulkCreateFromRepeatingInvoices?: Maybe<ProposalsBulkCreateFromRepeatingInvoicesPayload>;
+  xeroSettingsUpdate?: Maybe<XeroSettingsUpdatePayload>;
   xeroTaxRateMappingCreate?: Maybe<XeroTaxRateMappingCreatePayload>;
   xeroTaxRateMappingsUpdate?: Maybe<XeroTaxRateMappingsUpdatePayload>;
 };
@@ -6652,6 +6785,10 @@ export type MutationClientBillingItemArchiveArgs = {
   input: ClientBillingItemArchiveInput;
 };
 
+export type MutationClientBillingItemArchiveAsyncArgs = {
+  input: ClientBillingItemArchiveAsyncInput;
+};
+
 export type MutationClientBillingItemRescheduleArgs = {
   input: ClientBillingItemRescheduleInput;
 };
@@ -6692,8 +6829,8 @@ export type MutationClientServicesAgreedServiceCancelArgs = {
   input: ClientServicesAgreedServiceCancelInput;
 };
 
-export type MutationClientServicesAgreedServiceCreateArgs = {
-  input: ClientServicesAgreedServiceCreateInput;
+export type MutationClientServicesAgreedServiceChangeBillingGroupArgs = {
+  input: ClientServicesAgreedServiceChangeBillingGroupInput;
 };
 
 export type MutationClientServicesAgreedServiceDisableArgs = {
@@ -6718,6 +6855,10 @@ export type MutationClientServicesAgreedServiceUpdateArgs = {
 
 export type MutationClientServicesAgreedServicesExportArgs = {
   input: ClientServicesAgreedServicesExportInput;
+};
+
+export type MutationClientServicesInstantBillCreateArgs = {
+  input: ClientServicesInstantBillCreateInput;
 };
 
 export type MutationClientSetAppMappingArgs = {
@@ -7028,6 +7169,10 @@ export type MutationNotificationsSettingsSetSettingArgs = {
   input: NotificationsSettingsSetSettingInput;
 };
 
+export type MutationNotificationsSettingsUnsubscribeArgs = {
+  input: NotificationsSettingsUnsubscribeInput;
+};
+
 export type MutationNotificationsViewedArgs = {
   input: NotificationsViewedInput;
 };
@@ -7042,6 +7187,10 @@ export type MutationPaymentMethodCreateFromSetupIntentArgs = {
 
 export type MutationPaymentMethodRequestCreateArgs = {
   input: PaymentMethodRequestCreateInput;
+};
+
+export type MutationPaymentRefundCancelArgs = {
+  input: PaymentRefundCancelInput;
 };
 
 export type MutationPaymentRefundRequestArgs = {
@@ -7092,8 +7241,12 @@ export type MutationPaymentsTermsUpdateArgs = {
   input: PaymentsTermsUpdateInput;
 };
 
-export type MutationPracticeBillingCancelSubscriptionArgs = {
-  input: PracticeBillingCancelSubscriptionInput;
+export type MutationPracticeBillingPaymentCreditsExportArgs = {
+  input: PracticeBillingPaymentCreditsExportInput;
+};
+
+export type MutationPracticeBillingPaymentFeesExportArgs = {
+  input: PracticeBillingPaymentFeesExportInput;
 };
 
 export type MutationPracticeBillingReportPaymentChallengeErrorArgs = {
@@ -7210,6 +7363,10 @@ export type MutationProposalAddWorkflowStrategyTemplateArgs = {
 
 export type MutationProposalArchiveArgs = {
   input: ProposalArchiveInput;
+};
+
+export type MutationProposalBulkDeleteArgs = {
+  input: ProposalBulkDeleteInput;
 };
 
 export type MutationProposalCreateArgs = {
@@ -7472,6 +7629,10 @@ export type MutationProposalSetProposedServiceIncludedPriceArgs = {
   input: ProposalSetProposedServiceIncludedPriceInput;
 };
 
+export type MutationProposalSetProposedServiceIsAddOnArgs = {
+  input: ProposalSetProposedServiceIsAddOnInput;
+};
+
 export type MutationProposalSetProposedServiceMinimumPriceArgs = {
   input: ProposalSetProposedServiceMinimumPriceInput;
 };
@@ -7657,6 +7818,10 @@ export type MutationQuickbooksProposalsBulkCreateFromRecurringTransactionsArgs =
     input: ProposalsBulkCreateFromRecurringTransactionsInput;
   };
 
+export type MutationQuickbooksSetTrackClassesArgs = {
+  input: QuickbooksSetTrackClassesInput;
+};
+
 export type MutationQuickbooksSettingsUpdateArgs = {
   input: QuickbooksSettingsUpdateInput;
 };
@@ -7803,6 +7968,10 @@ export type MutationUserUploadAvatarArgs = {
 
 export type MutationXeroProposalsBulkCreateFromRepeatingInvoicesArgs = {
   input: ProposalsBulkCreateFromRepeatingInvoicesInput;
+};
+
+export type MutationXeroSettingsUpdateArgs = {
+  input: XeroSettingsUpdateInput;
 };
 
 export type MutationXeroTaxRateMappingCreateArgs = {
@@ -8077,8 +8246,8 @@ export type NotificationInput = {
 export type NotificationsActor = {
   __typename: 'NotificationsActor';
   avatarUrl?: Maybe<Scalars['URL']['output']>;
-  description?: Maybe<Scalars['String']['output']>;
-  initials?: Maybe<Scalars['String']['output']>;
+  description: Scalars['String']['output'];
+  initials: Scalars['String']['output'];
 };
 
 /** The connection type for NotificationsNotification. */
@@ -8091,6 +8260,11 @@ export type NotificationsConnection = {
   /** Information to aid in pagination. */
   pageInfo: PageInfo;
   unseenCount: Scalars['Int']['output'];
+};
+
+/** The connection type for NotificationsNotification. */
+export type NotificationsConnectionUnseenCountArgs = {
+  filter?: InputMaybe<NotificationsFilter>;
 };
 
 /** Type for filtering Notifications */
@@ -8113,8 +8287,15 @@ export type NotificationsMarkAllReadBeforeTimePayload = {
   /** A unique identifier for the client performing the mutation. */
   clientMutationId?: Maybe<Scalars['String']['output']>;
   /** Notifications marked as read */
-  notifications: Array<NotificationsNotification>;
+  markedAsRead: Array<NotificationsNotification>;
+  /** @deprecated Use markedAsRead instead */
+  notifications?: Maybe<Array<NotificationsNotification>>;
   user: User;
+};
+
+/** Autogenerated return type of NotificationsMarkAllReadBeforeTime. */
+export type NotificationsMarkAllReadBeforeTimePayloadMarkedAsReadArgs = {
+  filter?: InputMaybe<NotificationsFilter>;
 };
 
 /** Autogenerated input type of NotificationsMarkAsRead */
@@ -8129,6 +8310,8 @@ export type NotificationsMarkAsReadPayload = {
   __typename: 'NotificationsMarkAsReadPayload';
   /** A unique identifier for the client performing the mutation. */
   clientMutationId?: Maybe<Scalars['String']['output']>;
+  /** Notifications marked as read */
+  markedAsRead: Array<NotificationsNotification>;
   user: User;
 };
 
@@ -8202,6 +8385,7 @@ export type NotificationsSettingsSetScopePayload = {
   __typename: 'NotificationsSettingsSetScopePayload';
   /** A unique identifier for the client performing the mutation. */
   clientMutationId?: Maybe<Scalars['String']['output']>;
+  scope: NotificationsSettingsScope;
   user: User;
 };
 
@@ -8219,14 +8403,19 @@ export type NotificationsSettingsSetSettingPayload = {
   __typename: 'NotificationsSettingsSetSettingPayload';
   /** A unique identifier for the client performing the mutation. */
   clientMutationId?: Maybe<Scalars['String']['output']>;
+  setting?: Maybe<NotificationsSettingsSetting>;
   user: User;
 };
 
 export type NotificationsSettingsSetting = {
   __typename: 'NotificationsSettingsSetting';
+  /** @deprecated Use `channelSettings` instead */
   channelSetting: Array<NotificationsSettingsChannelSetting>;
+  channelSettings: Array<NotificationsSettingsChannelSetting>;
   group: NotificationsSettingsGroup;
+  /** @deprecated Use `settingKey` instead */
   settingId: NotificationsSettingsSettingId;
+  settingKey: NotificationsSettingsSettingId;
 };
 
 export enum NotificationsSettingsSettingId {
@@ -8238,6 +8427,23 @@ export type NotificationsSettingsSettings = {
   __typename: 'NotificationsSettingsSettings';
   scope: NotificationsSettingsScope;
   settings: Array<NotificationsSettingsSetting>;
+};
+
+/** Autogenerated input type of NotificationsSettingsUnsubscribe */
+export type NotificationsSettingsUnsubscribeInput = {
+  /** A unique identifier for the client performing the mutation. */
+  clientMutationId?: InputMaybe<Scalars['String']['input']>;
+  /** ID (slug) of the email delivery */
+  deliveryId: Scalars['ID']['input'];
+};
+
+/** Autogenerated return type of NotificationsSettingsUnsubscribe. */
+export type NotificationsSettingsUnsubscribePayload = {
+  __typename: 'NotificationsSettingsUnsubscribePayload';
+  /** A unique identifier for the client performing the mutation. */
+  clientMutationId?: Maybe<Scalars['String']['output']>;
+  setting?: Maybe<NotificationsSettingsSetting>;
+  user: User;
 };
 
 /** Autogenerated input type of NotificationsViewed */
@@ -8297,6 +8503,7 @@ export type OriginSource = {
 export enum OriginSourceTypeEnum {
   CLIENT = 'CLIENT',
   ENGAGEMENT = 'ENGAGEMENT',
+  INSTANT_BILL = 'INSTANT_BILL',
   PROJECT = 'PROJECT',
   PROPOSAL = 'PROPOSAL',
 }
@@ -8460,8 +8667,6 @@ export type PaymentGatewayEdge = {
 /** A method for making payments; mainly Credit Card and Direct Debit methods. */
 export type PaymentMethod = {
   __typename: 'PaymentMethod';
-  /** @deprecated replaced by usage of StripeJS on the frontend */
-  bacsDebitMandateUrl?: Maybe<Scalars['URL']['output']>;
   createdAt: Scalars['DateTime']['output'];
   displayMethodType: Scalars['String']['output'];
   displayName: Scalars['String']['output'];
@@ -8489,7 +8694,10 @@ export type PaymentMethod = {
   /** The rate of surcharge added to this payment method's charges to account for payment fees */
   surchargeRate: Percentage;
   type: PaymentMethodType;
+  /** @deprecated Use verificationUrlStatus instead */
+  verificationStatus?: Maybe<PaymentMethodVerificationStatus>;
   verificationUrl?: Maybe<Scalars['URL']['output']>;
+  verificationUrlStatus?: Maybe<PaymentMethodVerificationUrlStatus>;
 };
 
 /** Options for payment method acceptance status */
@@ -8640,11 +8848,41 @@ export enum PaymentMethodType {
   CREDIT_CARD = 'CREDIT_CARD',
 }
 
+/** Payment method verification statuses */
+export enum PaymentMethodVerificationStatus {
+  EXPIRED = 'EXPIRED',
+  UNVERIFIED = 'UNVERIFIED',
+  VERIFIED = 'VERIFIED',
+}
+
+/** Payment method verification URL statuses */
+export enum PaymentMethodVerificationUrlStatus {
+  EXPIRED = 'EXPIRED',
+  UNVERIFIED = 'UNVERIFIED',
+  VERIFIED = 'VERIFIED',
+}
+
 export type PaymentNotificationSettings = {
   __typename: 'PaymentNotificationSettings';
   sendNotifications: Scalars['Boolean']['output'];
   tenantId: Scalars['ID']['output'];
   useDefaultSettings: Scalars['Boolean']['output'];
+};
+
+/** Autogenerated input type of PaymentRefundCancel */
+export type PaymentRefundCancelInput = {
+  /** A unique identifier for the client performing the mutation. */
+  clientMutationId?: InputMaybe<Scalars['String']['input']>;
+  /** Refund ID */
+  id: Scalars['ID']['input'];
+};
+
+/** Autogenerated return type of PaymentRefundCancel. */
+export type PaymentRefundCancelPayload = {
+  __typename: 'PaymentRefundCancelPayload';
+  /** A unique identifier for the client performing the mutation. */
+  clientMutationId?: Maybe<Scalars['String']['output']>;
+  refund: PaymentsRefund;
 };
 
 /** Autogenerated input type of PaymentRefundRequest */
@@ -8687,6 +8925,7 @@ export type PaymentScheduleCollectionPayload = {
 
 export type PaymentSettings = {
   __typename: 'PaymentSettings';
+  allowedPaymentGatewayMethodTypes?: Maybe<Array<Scalars['String']['output']>>;
   /** State of payments collections setting */
   collectionsState: PaymentsCollectionsSettingState;
   /** Acceptance status for credit card payments */
@@ -8701,6 +8940,8 @@ export type PaymentSettings = {
   disbursalsState: PaymentsDisbursalsSettingState;
   /** ID of current payments settings */
   id: Scalars['ID']['output'];
+  /** Whether failed payments will be automatically retried */
+  isAutoRetryEnabled: Scalars['Boolean']['output'];
   /** Are disbursals enabled? */
   isDisbursalsEnabled: Scalars['Boolean']['output'];
   /** Whether Stripe has rejected the account */
@@ -8721,6 +8962,10 @@ export type PaymentSettings = {
   surchargeRate: Percentage;
   /** Date by which verification is required to keep the account enabled */
   verificationDeadline?: Maybe<Scalars['DateTime']['output']>;
+};
+
+export type PaymentSettingsAllowedPaymentGatewayMethodTypesArgs = {
+  scopeId?: InputMaybe<Scalars['ID']['input']>;
 };
 
 /** Autogenerated input type of PaymentStartCollection */
@@ -9024,6 +9269,7 @@ export type PaymentsRefund = {
 
 export enum PaymentsRefundState {
   APPROVED = 'APPROVED',
+  CANCELED = 'CANCELED',
   COMPLETED = 'COMPLETED',
   DECLINED = 'DECLINED',
   FAILED = 'FAILED',
@@ -9161,7 +9407,9 @@ export type PlanEdge = {
 
 export enum PlanNameEnum {
   BOOKKEEPER = 'BOOKKEEPER',
+  BOOKKEEPER2024 = 'BOOKKEEPER2024',
   CORE = 'CORE',
+  CORE2024 = 'CORE2024',
   /** Legacy plan */
   JUPITER = 'JUPITER',
   /** Legacy plan */
@@ -9170,8 +9418,10 @@ export enum PlanNameEnum {
   NEPTUNE = 'NEPTUNE',
   NONE = 'NONE',
   PRO = 'PRO',
+  PRO2024 = 'PRO2024',
   PROFESSIONAL = 'PROFESSIONAL',
   PROPLUS = 'PROPLUS',
+  PROPLUS2024 = 'PROPLUS2024',
   /** Legacy plan */
   SATURN = 'SATURN',
   SCALE = 'SCALE',
@@ -9180,6 +9430,7 @@ export enum PlanNameEnum {
 }
 
 export enum PlanVersion {
+  JUL_2024 = 'JUL_2024',
   JUNE_2015 = 'JUNE_2015',
   JUNE_2018 = 'JUNE_2018',
   MAY_2014 = 'MAY_2014',
@@ -9299,8 +9550,11 @@ export type PracticeBilling = {
   currentSubscription: PracticeBillingSubscription;
   /** Eligible plans for coupon redemption. */
   eligibleBillingPlans?: Maybe<Array<PracticeBillingEligibleBillingPlan>>;
+  invoice?: Maybe<PracticeBillingInvoice>;
   invoices: PracticeBillingInvoiceConnection;
   paymentChallenge?: Maybe<PracticeBillingPaymentChallenge>;
+  paymentCredits: PracticeBillingPaymentCreditConnection;
+  paymentFees: PracticeBillingPaymentFeeConnection;
   paymentMethods: Array<PracticeBillingPaymentMethod>;
   /** Preview of practice's billing subscription. */
   subscriptionPreview?: Maybe<PracticeBillingSubscription>;
@@ -9315,9 +9569,29 @@ export type PracticeBillingEligibleBillingPlansArgs = {
   couponCode: Scalars['String']['input'];
 };
 
+export type PracticeBillingInvoiceArgs = {
+  id: Scalars['ID']['input'];
+};
+
 export type PracticeBillingInvoicesArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   before?: InputMaybe<Scalars['String']['input']>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  last?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export type PracticeBillingPaymentCreditsArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  before?: InputMaybe<Scalars['String']['input']>;
+  filter?: InputMaybe<PracticeBillingPaymentCreditFilter>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  last?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export type PracticeBillingPaymentFeesArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  before?: InputMaybe<Scalars['String']['input']>;
+  filter?: InputMaybe<PracticeBillingPaymentFeeFilter>;
   first?: InputMaybe<Scalars['Int']['input']>;
   last?: InputMaybe<Scalars['Int']['input']>;
 };
@@ -9381,7 +9655,10 @@ export type PracticeBillingCoupon = {
   description?: Maybe<Scalars['String']['output']>;
   /** The discount amount to display to the user */
   displayDiscount: Scalars['String']['output'];
+  /** The date the coupon expires */
   expiryDate?: Maybe<Scalars['Date']['output']>;
+  /** The plans that this coupon is eligible for, empty if all plans are eligible */
+  planRestrictions: Array<PracticeBillingPlan>;
   type: Scalars['String']['output'];
 };
 
@@ -9411,12 +9688,33 @@ export type PracticeBillingInvoice = {
   amount: Money;
   amountWithTax: Money;
   createdOn: Scalars['Date']['output'];
+  creditEnabled: Scalars['Boolean']['output'];
   id: Scalars['ID']['output'];
   items: Array<PracticeBillingInvoiceItem>;
+  paymentCredits: PracticeBillingPaymentCreditConnection;
+  paymentFeeDescriptions: Array<Scalars['String']['output']>;
+  paymentFees: PracticeBillingPaymentFeeConnection;
   pdfUrl: Scalars['URL']['output'];
   reference: Scalars['String']['output'];
   status: PracticeBillingInvoiceStatus;
   taxAmount: Money;
+  totalCreditCarriedForwardToNextInvoiceAmount: Money;
+};
+
+export type PracticeBillingInvoicePaymentCreditsArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  before?: InputMaybe<Scalars['String']['input']>;
+  filter?: InputMaybe<PracticeBillingPaymentCreditFilter>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  last?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export type PracticeBillingInvoicePaymentFeesArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  before?: InputMaybe<Scalars['String']['input']>;
+  filter?: InputMaybe<PracticeBillingPaymentFeeFilter>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  last?: InputMaybe<Scalars['Int']['input']>;
 };
 
 /** The connection type for PracticeBillingInvoice. */
@@ -9483,6 +9781,96 @@ export enum PracticeBillingPaymentChallengeTypeEnum {
   SECURE_3D_2 = 'SECURE_3D_2',
 }
 
+export type PracticeBillingPaymentCredit = {
+  __typename: 'PracticeBillingPaymentCredit';
+  amount: Money;
+  amountWithTax: Money;
+  collection: Collection;
+  id: Scalars['ID']['output'];
+};
+
+/** The connection type for PracticeBillingPaymentCredit. */
+export type PracticeBillingPaymentCreditConnection = {
+  __typename: 'PracticeBillingPaymentCreditConnection';
+  /** A list of edges. */
+  edges: Array<PracticeBillingPaymentCreditEdge>;
+  /** A list of nodes. */
+  nodes: Array<PracticeBillingPaymentCredit>;
+  /** Information to aid in pagination. */
+  pageInfo: PageInfo;
+  totalAmount: Money;
+  totalAmountWithTax: Money;
+  totalCount: Scalars['Int']['output'];
+};
+
+/** An edge in a connection. */
+export type PracticeBillingPaymentCreditEdge = {
+  __typename: 'PracticeBillingPaymentCreditEdge';
+  /** A cursor for use in pagination. */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge. */
+  node: PracticeBillingPaymentCredit;
+};
+
+export type PracticeBillingPaymentCreditFilter = {
+  appliedToSameInvoice?: InputMaybe<Scalars['Boolean']['input']>;
+  carriedForward?: InputMaybe<Scalars['Boolean']['input']>;
+  /** Only use this filter when you filtering credits of an invoice */
+  carriedForwardFromLastInvoice?: InputMaybe<Scalars['Boolean']['input']>;
+  stateEq?: InputMaybe<PracticeBillingPaymentCreditState>;
+};
+
+export enum PracticeBillingPaymentCreditState {
+  CANCELED = 'CANCELED',
+  CREDITED = 'CREDITED',
+  UNCREDITED = 'UNCREDITED',
+}
+
+export type PracticeBillingPaymentFee = {
+  __typename: 'PracticeBillingPaymentFee';
+  amount: Money;
+  amountWithTax: Money;
+  collection: Collection;
+  creditStatus: PracticeBillingPaymentFeeCreditStatus;
+  description?: Maybe<Scalars['String']['output']>;
+  id: Scalars['ID']['output'];
+  shortDescription?: Maybe<Scalars['String']['output']>;
+};
+
+/** The connection type for PracticeBillingPaymentFee. */
+export type PracticeBillingPaymentFeeConnection = {
+  __typename: 'PracticeBillingPaymentFeeConnection';
+  /** A list of edges. */
+  edges: Array<PracticeBillingPaymentFeeEdge>;
+  /** A list of nodes. */
+  nodes: Array<PracticeBillingPaymentFee>;
+  /** Information to aid in pagination. */
+  pageInfo: PageInfo;
+  totalAmount: Money;
+  totalAmountWithTax: Money;
+  totalCount: Scalars['Int']['output'];
+};
+
+export enum PracticeBillingPaymentFeeCreditStatus {
+  APPLIED = 'APPLIED',
+  NOT_APPLICABLE = 'NOT_APPLICABLE',
+  NOT_APPLIED = 'NOT_APPLIED',
+}
+
+/** An edge in a connection. */
+export type PracticeBillingPaymentFeeEdge = {
+  __typename: 'PracticeBillingPaymentFeeEdge';
+  /** A cursor for use in pagination. */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge. */
+  node: PracticeBillingPaymentFee;
+};
+
+export type PracticeBillingPaymentFeeFilter = {
+  creditAppliedToSameInvoice?: InputMaybe<Scalars['Boolean']['input']>;
+  creditCarriedForwardToNextInvoice?: InputMaybe<Scalars['Boolean']['input']>;
+};
+
 export type PracticeBillingPaymentFeeProduct = PracticeBillingProduct & {
   __typename: 'PracticeBillingPaymentFeeProduct';
   category: PracticeBillingProductCategory;
@@ -9518,6 +9906,7 @@ export type PracticeBillingPlan = {
   __typename: 'PracticeBillingPlan';
   /** Combination of specific tier and frequency ie. '2018-professional-monthly' */
   code?: Maybe<Scalars['String']['output']>;
+  frequency: PracticeBillingPlanFrequency;
   id: Scalars['ID']['output'];
   isCustom: Scalars['Boolean']['output'];
   isLegacy: Scalars['Boolean']['output'];
@@ -9549,7 +9938,9 @@ export type PracticeBillingPlanInput = {
 
 export enum PracticeBillingPlanNameEnum {
   BOOKKEEPER = 'BOOKKEEPER',
+  BOOKKEEPER2024 = 'BOOKKEEPER2024',
   CORE = 'CORE',
+  CORE2024 = 'CORE2024',
   /** Legacy plan */
   JUPITER = 'JUPITER',
   /** Legacy plan */
@@ -9558,8 +9949,10 @@ export enum PracticeBillingPlanNameEnum {
   NEPTUNE = 'NEPTUNE',
   NONE = 'NONE',
   PRO = 'PRO',
+  PRO2024 = 'PRO2024',
   PROFESSIONAL = 'PROFESSIONAL',
   PROPLUS = 'PROPLUS',
+  PROPLUS2024 = 'PROPLUS2024',
   /** Legacy plan */
   SATURN = 'SATURN',
   SCALE = 'SCALE',
@@ -10469,11 +10862,6 @@ export enum ProposalBillingGroupedBy {
   /** Services from this proposal may be billed together with services from this client's other proposals. */
   CLIENT = 'CLIENT',
   /**
-   * Services from this proposal will be billed separately for each project, and
-   * will not be combined with services from other proposals or projects.
-   */
-  PROJECT = 'PROJECT',
-  /**
    * Services from this proposal will be billed separately from this client's other
    * proposals, but services from different projects may be billed together.
    */
@@ -10554,6 +10942,22 @@ export enum ProposalBillingStrategyType {
   ONCE_OFF = 'ONCE_OFF',
   RECURRING = 'RECURRING',
 }
+
+/** Autogenerated input type of ProposalBulkDelete */
+export type ProposalBulkDeleteInput = {
+  /** A unique identifier for the client performing the mutation. */
+  clientMutationId?: InputMaybe<Scalars['String']['input']>;
+  ids: Array<Scalars['ID']['input']>;
+};
+
+/** Autogenerated return type of ProposalBulkDelete. */
+export type ProposalBulkDeletePayload = {
+  __typename: 'ProposalBulkDeletePayload';
+  /** Async Job Group for the proposals being deleted in the background */
+  asyncJobGroup?: Maybe<AsyncJobGroup>;
+  /** A unique identifier for the client performing the mutation. */
+  clientMutationId?: Maybe<Scalars['String']['output']>;
+};
 
 /** The connection type for Proposal. */
 export type ProposalConnection = {
@@ -10855,8 +11259,12 @@ export type ProposalFixedPrice = ProposalPriceInterface & {
   /** Amount including tax, excluding discount */
   amountWithTax: Money;
   currency: Currency;
+  /** Description of the price rule, respecting practice level tax rules */
+  description: Scalars['String']['output'];
   /** Price display without tax */
   display: Scalars['String']['output'];
+  /** Human readable name of the price rule type */
+  displayName: Scalars['String']['output'];
   /** Total Price display with discount, without tax */
   displayTotalAmount: Scalars['String']['output'];
   /** Total amount including discount and tax in human readable form */
@@ -10890,10 +11298,16 @@ export type ProposalFixedPrice = ProposalPriceInterface & {
 export type ProposalIncludedPrice = ProposalPriceInterface & {
   __typename: 'ProposalIncludedPrice';
   currency: Currency;
+  /** Description of the price rule, respecting practice level tax rules */
+  description: Scalars['String']['output'];
   /** Price display without tax */
   display: Scalars['String']['output'];
+  /** Human readable name of the price rule type */
+  displayName: Scalars['String']['output'];
   /** Total amount including discount, excluding tax in human readable form */
   displayTotalAmount: Scalars['String']['output'];
+  /** Total amount including discount and tax in human readable form */
+  displayTotalAmountWithTax: Scalars['String']['output'];
   /** The total discount, in human readable form */
   displayTotalDiscountAmount: Scalars['String']['output'];
   /** The total amount, excluding discount and tax in human readable form */
@@ -10948,10 +11362,16 @@ export type ProposalMinimumPrice = ProposalPriceInterface & {
   /** Amount including tax */
   amountWithTax: Money;
   currency: Currency;
+  /** Description of the price rule, respecting practice level tax rules */
+  description: Scalars['String']['output'];
   /** Price display without tax */
   display: Scalars['String']['output'];
+  /** Human readable name of the price rule type */
+  displayName: Scalars['String']['output'];
   /** Total amount including discount, excluding tax in human readable form */
   displayTotalAmount: Scalars['String']['output'];
+  /** Total amount including discount and tax in human readable form */
+  displayTotalAmountWithTax: Scalars['String']['output'];
   /** The total discount, in human readable form */
   displayTotalDiscountAmount: Scalars['String']['output'];
   /** The total amount, excluding discount and tax in human readable form */
@@ -11225,10 +11645,16 @@ export type ProposalOptionSetNamePayload = {
 
 export type ProposalPriceInterface = {
   currency: Currency;
+  /** Description of the price rule, respecting practice level tax rules */
+  description: Scalars['String']['output'];
   /** Price display without tax */
   display: Scalars['String']['output'];
+  /** Human readable name of the price rule type */
+  displayName: Scalars['String']['output'];
   /** Total amount including discount, excluding tax in human readable form */
   displayTotalAmount: Scalars['String']['output'];
+  /** Total amount including discount and tax in human readable form */
+  displayTotalAmountWithTax: Scalars['String']['output'];
   /** The total discount, in human readable form */
   displayTotalDiscountAmount: Scalars['String']['output'];
   /** The total amount, excluding discount and tax in human readable form */
@@ -11245,10 +11671,16 @@ export type ProposalPriceInterface = {
 export type ProposalPriceRange = ProposalPriceInterface & {
   __typename: 'ProposalPriceRange';
   currency: Currency;
+  /** Description of the price rule, respecting practice level tax rules */
+  description: Scalars['String']['output'];
   /** Price display without tax */
   display: Scalars['String']['output'];
+  /** Human readable name of the price rule type */
+  displayName: Scalars['String']['output'];
   /** Total amount including discount, excluding tax in human readable form */
   displayTotalAmount: Scalars['String']['output'];
+  /** Total amount including discount and tax in human readable form */
+  displayTotalAmountWithTax: Scalars['String']['output'];
   /** The total discount, in human readable form */
   displayTotalDiscountAmount: Scalars['String']['output'];
   /** The total amount, excluding discount and tax in human readable form */
@@ -11619,7 +12051,12 @@ export type ProposalResult = {
   paymentRequired: Scalars['Boolean']['output'];
   paymentType: Scalars['String']['output'];
   paymentsEnabled: Scalars['Boolean']['output'];
+  /**
+   * The original proposal object used throughout Ignition
+   * @deprecated This field is not indexed for searching; using it causes an extra database query per result object
+   */
   proposal: Proposal;
+  proposalResultStatus: ProposalState;
   referenceNumber?: Maybe<Scalars['String']['output']>;
   remindersSentCount: Scalars['Int']['output'];
   renewal: Scalars['Boolean']['output'];
@@ -11633,6 +12070,7 @@ export type ProposalResult = {
   signatoriesCount: Scalars['Int']['output'];
   signedOnBehalf: Scalars['Boolean']['output'];
   signedOnBehalfBy?: Maybe<Scalars['String']['output']>;
+  /** @deprecated Use proposalResultStatus instead. */
   status: ProposalState;
   termsTemplate?: Maybe<Scalars['String']['output']>;
   text: Scalars['String']['output'];
@@ -12145,6 +12583,27 @@ export type ProposalSetProposedServiceIncludedPricePayload = {
   proposedService?: Maybe<ProposedService>;
 };
 
+/** Autogenerated input type of ProposalSetProposedServiceIsAddOn */
+export type ProposalSetProposedServiceIsAddOnInput = {
+  /** A unique identifier for the client performing the mutation. */
+  clientMutationId?: InputMaybe<Scalars['String']['input']>;
+  /** slug of the proposal */
+  id: Scalars['ID']['input'];
+  /** isAddOn flag */
+  isAddOn: Scalars['Boolean']['input'];
+  /** uuid of the proposed service */
+  proposedServiceId: Scalars['ID']['input'];
+};
+
+/** Autogenerated return type of ProposalSetProposedServiceIsAddOn. */
+export type ProposalSetProposedServiceIsAddOnPayload = {
+  __typename: 'ProposalSetProposedServiceIsAddOnPayload';
+  /** A unique identifier for the client performing the mutation. */
+  clientMutationId?: Maybe<Scalars['String']['output']>;
+  proposal?: Maybe<Proposal>;
+  proposedService?: Maybe<ProposedService>;
+};
+
 /** Autogenerated input type of ProposalSetProposedServiceMinimumPrice */
 export type ProposalSetProposedServiceMinimumPriceInput = {
   amount: MoneyInput;
@@ -12634,9 +13093,13 @@ export type ProposalUnitPrice = ProposalPriceInterface & {
   /** Amount including tax */
   amountWithTax: Money;
   currency: Currency;
+  /** Description of the price rule, respecting practice level tax rules */
+  description: Scalars['String']['output'];
   /** Price display without tax */
   display: Scalars['String']['output'];
-  /** Total Price display including discount, without tax */
+  /** Human readable name of the price rule type */
+  displayName: Scalars['String']['output'];
+  /** Total amount including discount, excluding tax in human readable form */
   displayTotalAmount: Scalars['String']['output'];
   /** Total amount including discount and tax in human readable form */
   displayTotalAmountWithTax: Scalars['String']['output'];
@@ -12825,8 +13288,11 @@ export type ProposedService = {
     | BillingNoneDiscountRule
     | BillingPercentDiscountRule;
   id: Scalars['ID']['output'];
+  invoiceStrategy: ProposalInvoiceStrategy;
+  isAddOn: Scalars['Boolean']['output'];
   /** Indicates if the proposed service was created via client renewal */
   isRenewal: Scalars['Boolean']['output'];
+  isSelectedForAcceptance: Scalars['Boolean']['output'];
   /** Ledger Items. Currently only supports Xero account */
   ledgerItems?: Maybe<Array<LedgerItem>>;
   name: Scalars['String']['output'];
@@ -12907,13 +13373,14 @@ export type Query = {
   acknowledgements: Array<Acknowledgement>;
   /** Agreed Service */
   agreedService?: Maybe<AgreedService>;
-  agreedServiceCreatePreview?: Maybe<AgreedServiceCreatePreview>;
   agreedServiceUpdatePreview?: Maybe<AgreedServiceUpdatePreview>;
   /** Current user's ai text generation session */
   aiTextGenerationSession?: Maybe<Session>;
   app?: Maybe<App>;
   apps: AppConnection;
   asyncJobGroup?: Maybe<AsyncJobGroup>;
+  /** billing items for practice */
+  billingItems: ClientBillingBillingItemConnection;
   brandingTheme: BrandingTheme;
   /** Find a Client */
   client: Client;
@@ -12921,6 +13388,7 @@ export type Query = {
   clientGroup?: Maybe<ClientGroup>;
   /** List client groups */
   clientGroups?: Maybe<Array<ClientGroup>>;
+  clientImportFromAppClientsResult: ClientImportFromAppClientsResult;
   clientTagList: Array<Scalars['String']['output']>;
   clientWorkflowStrategy: ClientWorkflowStrategy;
   clients: ClientConnection;
@@ -12946,6 +13414,7 @@ export type Query = {
   exports?: Maybe<Export>;
   feature?: Maybe<Feature>;
   featureFlag: FeatureFlag;
+  instantBillCreatePreview?: Maybe<Array<AgreedServiceCreatePreview>>;
   /** Client Billing Invoice */
   invoice?: Maybe<ClientBillingInvoice>;
   ipm: Ipm;
@@ -13061,15 +13530,6 @@ export type QueryAgreedServiceArgs = {
 };
 
 /** The query root of this schema */
-export type QueryAgreedServiceCreatePreviewArgs = {
-  agreedServiceInput: AgreedServiceInput;
-  clientId: Scalars['ID']['input'];
-  notification?: InputMaybe<NotificationInput>;
-  paymentMethodId?: InputMaybe<Scalars['ID']['input']>;
-  reason?: InputMaybe<Scalars['String']['input']>;
-};
-
-/** The query root of this schema */
 export type QueryAgreedServiceUpdatePreviewArgs = {
   agreedServiceInput: AgreedServiceInput;
   id: Scalars['ID']['input'];
@@ -13100,6 +13560,15 @@ export type QueryAsyncJobGroupArgs = {
 };
 
 /** The query root of this schema */
+export type QueryBillingItemsArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  before?: InputMaybe<Scalars['String']['input']>;
+  filter?: InputMaybe<BillingItemFilter>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  last?: InputMaybe<Scalars['Int']['input']>;
+};
+
+/** The query root of this schema */
 export type QueryClientArgs = {
   id: Scalars['ID']['input'];
 };
@@ -13107,6 +13576,11 @@ export type QueryClientArgs = {
 /** The query root of this schema */
 export type QueryClientGroupArgs = {
   id: Scalars['ID']['input'];
+};
+
+/** The query root of this schema */
+export type QueryClientImportFromAppClientsResultArgs = {
+  asyncJobGroupId: Scalars['ID']['input'];
 };
 
 /** The query root of this schema */
@@ -13193,6 +13667,15 @@ export type QueryFeatureArgs = {
 /** The query root of this schema */
 export type QueryFeatureFlagArgs = {
   id: Scalars['String']['input'];
+};
+
+/** The query root of this schema */
+export type QueryInstantBillCreatePreviewArgs = {
+  agreedServicesInput: Array<AgreedServiceInput>;
+  clientId: Scalars['ID']['input'];
+  notification?: InputMaybe<NotificationInput>;
+  paymentMethodId?: InputMaybe<Scalars['ID']['input']>;
+  reason?: InputMaybe<Scalars['String']['input']>;
 };
 
 /** The query root of this schema */
@@ -13496,6 +13979,21 @@ export type QuickbooksItemEdge = {
   node: QuickbooksItem;
 };
 
+/** Autogenerated input type of QuickbooksSetTrackClasses */
+export type QuickbooksSetTrackClassesInput = {
+  /** A unique identifier for the client performing the mutation. */
+  clientMutationId?: InputMaybe<Scalars['String']['input']>;
+  trackClasses: Scalars['Boolean']['input'];
+};
+
+/** Autogenerated return type of QuickbooksSetTrackClasses. */
+export type QuickbooksSetTrackClassesPayload = {
+  __typename: 'QuickbooksSetTrackClassesPayload';
+  /** A unique identifier for the client performing the mutation. */
+  clientMutationId?: Maybe<Scalars['String']['output']>;
+  quickbooks?: Maybe<Quickbooks>;
+};
+
 export type QuickbooksSettings = {
   __typename: 'QuickbooksSettings';
   confirmed: Scalars['Boolean']['output'];
@@ -13503,6 +14001,16 @@ export type QuickbooksSettings = {
   defaultItem?: Maybe<QuickbooksItem>;
   defaultTerms: Scalars['Int']['output'];
   invoicesShowServiceDescription: Scalars['Boolean']['output'];
+  /**
+   * A boolean representing if the connected account has classes per transaction line
+   *           enabled within the Quickbooks app
+   */
+  isClassesEnabledInQuickbooks: Scalars['Boolean']['output'];
+  /**
+   * A boolean representing if the current user has the Track Classes
+   *           feature ("track categories" capability) enabled for Quickbooks within Ignition
+   */
+  isTrackClassesEnabled: Scalars['Boolean']['output'];
   recurringTerms: Scalars['Int']['output'];
   syncClientName: Scalars['Boolean']['output'];
 };
@@ -13862,6 +14370,7 @@ export type ScheduleItem = {
   invoiceStrategy?: Maybe<ProposalInvoiceStrategy>;
   isBilled: Scalars['Boolean']['output'];
   price: Money;
+  status: BillingStatusType;
 };
 
 export enum ScheduleTypeEnum {
@@ -13938,6 +14447,74 @@ export type SearchExportCsvPayload = {
   clientMutationId?: Maybe<Scalars['String']['output']>;
 };
 
+export type SearchInvoicePaymentMethodType = {
+  __typename: 'SearchInvoicePaymentMethodType';
+  /** An invoice's payment method display name */
+  displayMethodType: Scalars['String']['output'];
+  /** An invoice's payment method display name */
+  displayName: Scalars['String']['output'];
+  /** The slug of an invoice's payment method */
+  id: Scalars['ID']['output'];
+  /** An invoice's payment method last four digits */
+  numberSuffix: Scalars['String']['output'];
+  /** An invoice's payment method type */
+  type: PaymentMethodType;
+};
+
+export enum SearchInvoicePaymentProgressStatusLevelType {
+  ERROR = 'ERROR',
+  INFO = 'INFO',
+  SUCCESS = 'SUCCESS',
+  WARNING = 'WARNING',
+}
+
+export enum SearchInvoicePaymentProgressStatusType {
+  CANCELED = 'CANCELED',
+  COLLECTED = 'COLLECTED',
+  COLLECTING = 'COLLECTING',
+  COLLECTION_FAILED = 'COLLECTION_FAILED',
+  CONFIRMATION_REQUESTED = 'CONFIRMATION_REQUESTED',
+  DISPUTE_LOST = 'DISPUTE_LOST',
+  DISPUTE_OPEN = 'DISPUTE_OPEN',
+  DISPUTE_WON = 'DISPUTE_WON',
+  NOT_STARTED = 'NOT_STARTED',
+  PAID_OUT = 'PAID_OUT',
+  PAYING_OUT = 'PAYING_OUT',
+  PAYOUT_FAILED = 'PAYOUT_FAILED',
+  REFUNDED = 'REFUNDED',
+  REFUND_APPROVED = 'REFUND_APPROVED',
+  REFUND_FAILED = 'REFUND_FAILED',
+  REFUND_REQUESTED = 'REFUND_REQUESTED',
+  REFUND_REQUEST_DECLINED = 'REFUND_REQUEST_DECLINED',
+  REFUND_STARTED = 'REFUND_STARTED',
+  VERIFICATION_FAILED = 'VERIFICATION_FAILED',
+  VERIFICATION_REQUESTED = 'VERIFICATION_REQUESTED',
+}
+
+export type SearchInvoicePaymentProgressType = {
+  __typename: 'SearchInvoicePaymentProgressType';
+  /** An invoice's payment progress current step */
+  currentStep: Scalars['Int']['output'];
+  /** An invoice's payment progress description */
+  description?: Maybe<Scalars['String']['output']>;
+  /** An invoice's payment progress display name */
+  displayName: Scalars['String']['output'];
+  /** An invoice's payment progress status */
+  status: SearchInvoicePaymentProgressStatusType;
+  /** An invoice's payment progress status level */
+  statusLevel: SearchInvoicePaymentProgressStatusLevelType;
+  /** An invoice's payment progress total steps */
+  totalSteps: Scalars['Int']['output'];
+};
+
+export enum SearchInvoicePaymentStatusType {
+  AWAITING = 'AWAITING',
+  FAILED = 'FAILED',
+  PAID = 'PAID',
+  SCHEDULED = 'SCHEDULED',
+  UNSCHEDULED = 'UNSCHEDULED',
+}
+
 export enum SearchNumberFilterCondition {
   AFTER = 'AFTER',
   BEFORE = 'BEFORE',
@@ -14010,6 +14587,7 @@ export type SearchResult =
   | BillingItemResult
   | ClientResult
   | IgnitionAppServiceType
+  | InvoiceResult
   | ProposalCustomTemplate
   | ProposalProvidedTemplate
   | ProposalResult
@@ -14025,10 +14603,16 @@ export enum SearchSortDirection {
 }
 
 export enum SearchTextFilterCondition {
+  /** Matches all records of which attribute is any of the values */
   ANY_OF = 'ANY_OF',
+  /** Matches all records of which attribute contains all values */
   CONTAINS = 'CONTAINS',
+  /** Matches all records of which attribute equals value */
   EQUALS = 'EQUALS',
+  /** Matches all records of which attribute has no value */
   HAS_NO_VALUE = 'HAS_NO_VALUE',
+  /** Matches all records of which attribute is a subset of values */
+  INCLUDES = 'INCLUDES',
 }
 
 export enum SearchType {
@@ -14038,6 +14622,7 @@ export enum SearchType {
   BILLING_ITEM = 'BILLING_ITEM',
   CLIENT = 'CLIENT',
   CLIENT_BULK_ACTION = 'CLIENT_BULK_ACTION',
+  INVOICE = 'INVOICE',
   PROPOSAL = 'PROPOSAL',
   PROPOSAL_BULK_ACTION = 'PROPOSAL_BULK_ACTION',
 }
@@ -14046,7 +14631,7 @@ export type SelectedTrackingOptionInput = {
   /** The ID of the Xero tracking category */
   categoryId: Scalars['ID']['input'];
   /** The ID of the selected option for this category */
-  optionId: Scalars['ID']['input'];
+  optionId?: InputMaybe<Scalars['ID']['input']>;
 };
 
 /** Autogenerated input type of SendDemoProposal */
@@ -14522,6 +15107,7 @@ export type ServiceRevenueExportPayload = {
   __typename: 'ServiceRevenueExportPayload';
   /** A unique identifier for the client performing the mutation. */
   clientMutationId?: Maybe<Scalars['String']['output']>;
+  /** @deprecated This mutation doesn't provide user errors. */
   userErrors?: Maybe<Array<UserError>>;
 };
 
@@ -14614,6 +15200,8 @@ export type ServicesBulkCreatePayload = {
 
 export type Session = {
   __typename: 'Session';
+  /** Generation type */
+  generationType?: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
   /** Latest generated text result */
   text?: Maybe<Scalars['String']['output']>;
@@ -14707,7 +15295,7 @@ export type Subscription = {
   /** Fires when a ledger app sync reveals there are proposals available for import */
   capabilitiesProposalImportProposalsAvailable: CapabilitiesProposalImportProposalsAvailablePayload;
   /** Count of unseen notifications has changed */
-  notificationsUnseenCountChanged: UnseenCountChangedPayload;
+  notificationsUnseenCountChanged: NotificationsUnseenCountChangedPayload;
   paymentCollected: PaymentCollectedPayload;
   paymentDisbursed: PaymentDisbursedPayload;
   paymentStarted: PaymentStartedPayload;
@@ -15187,12 +15775,6 @@ export type UnitPriceRuleInput = {
   amount: MoneyInput;
   /** Unit name */
   unitName: Scalars['String']['input'];
-};
-
-/** Autogenerated return type of UnseenCountChanged. */
-export type UnseenCountChangedPayload = {
-  __typename: 'UnseenCountChangedPayload';
-  unseenCount: Scalars['Int']['output'];
 };
 
 export type UpdateContactInput = {
@@ -15798,6 +16380,7 @@ export enum XpmState {
 
 export type Xero = {
   __typename: 'Xero';
+  brandingThemes: Array<XeroBrandingTheme>;
   /** Branding theme when payment is collected by Ignition */
   defaultBrandingTheme?: Maybe<XeroBrandingTheme>;
   defaultInvoiceState?: Maybe<Scalars['String']['output']>;
@@ -15806,6 +16389,7 @@ export type Xero = {
   /** Automatically create invoices in Xero */
   deployInvoices: Scalars['Boolean']['output'];
   id: Scalars['ID']['output'];
+  invoiceDeploySettings: InvoiceDeploySettings;
   /** Branding theme when payment is arranged manually */
   recurringBrandingTheme?: Maybe<XeroBrandingTheme>;
   recurringTerms?: Maybe<Scalars['Int']['output']>;
@@ -15901,6 +16485,25 @@ export type XeroIntegrationRepeatingInvoice = {
   xeroReference?: Maybe<Scalars['String']['output']>;
   /** External Xero ID of the repeating invoice */
   xeroRepeatingInvoiceId: Scalars['String']['output'];
+};
+
+/** Autogenerated input type of XeroSettingsUpdate */
+export type XeroSettingsUpdateInput = {
+  /** A unique identifier for the client performing the mutation. */
+  clientMutationId?: InputMaybe<Scalars['String']['input']>;
+  /** The ID of the branding theme when payment is collected by Ignition */
+  defaultBrandingTheme: Scalars['ID']['input'];
+  invoiceDeploySettings: InvoiceDeploySettingsInput;
+  /** The ID of the branding theme when payment is arranged manually */
+  recurringBrandingTheme: Scalars['ID']['input'];
+};
+
+/** Autogenerated return type of XeroSettingsUpdate. */
+export type XeroSettingsUpdatePayload = {
+  __typename: 'XeroSettingsUpdatePayload';
+  /** A unique identifier for the client performing the mutation. */
+  clientMutationId?: Maybe<Scalars['String']['output']>;
+  xero?: Maybe<Xero>;
 };
 
 export enum XeroState {
@@ -16279,6 +16882,12 @@ export type EnhanceAiServiceDescriptionPayload = {
   session?: Maybe<Session>;
 };
 
+/** Autogenerated return type of notificationsUnseenCountChanged. */
+export type NotificationsUnseenCountChangedPayload = {
+  __typename: 'notificationsUnseenCountChangedPayload';
+  unseenCount: Scalars['Int']['output'];
+};
+
 /** Autogenerated return type of paymentCollected. */
 export type PaymentCollectedPayload = {
   __typename: 'paymentCollectedPayload';
@@ -16306,20 +16915,37 @@ export type PaymentStartedPayload = {
   payment: Payment;
 };
 
-/** Autogenerated input type of practiceBillingCancelSubscription */
-export type PracticeBillingCancelSubscriptionInput = {
+/** Autogenerated input type of practiceBillingPaymentCreditsExport */
+export type PracticeBillingPaymentCreditsExportInput = {
   /** A unique identifier for the client performing the mutation. */
   clientMutationId?: InputMaybe<Scalars['String']['input']>;
-  exitSurvey: ExitSurveyInputType;
+  filter?: InputMaybe<PracticeBillingPaymentCreditFilter>;
+  /** Invoice ID */
+  id: Scalars['ID']['input'];
 };
 
-/** Autogenerated return type of practiceBillingCancelSubscription. */
-export type PracticeBillingCancelSubscriptionPayload = {
-  __typename: 'practiceBillingCancelSubscriptionPayload';
+/** Autogenerated return type of practiceBillingPaymentCreditsExport. */
+export type PracticeBillingPaymentCreditsExportPayload = {
+  __typename: 'practiceBillingPaymentCreditsExportPayload';
   /** A unique identifier for the client performing the mutation. */
   clientMutationId?: Maybe<Scalars['String']['output']>;
-  exitSurvey: ExitSurvey;
-  practice: Practice;
+  export: Export;
+};
+
+/** Autogenerated input type of practiceBillingPaymentFeesExport */
+export type PracticeBillingPaymentFeesExportInput = {
+  /** A unique identifier for the client performing the mutation. */
+  clientMutationId?: InputMaybe<Scalars['String']['input']>;
+  /** Invoice ID */
+  id: Scalars['ID']['input'];
+};
+
+/** Autogenerated return type of practiceBillingPaymentFeesExport. */
+export type PracticeBillingPaymentFeesExportPayload = {
+  __typename: 'practiceBillingPaymentFeesExportPayload';
+  /** A unique identifier for the client performing the mutation. */
+  clientMutationId?: Maybe<Scalars['String']['output']>;
+  export: Export;
 };
 
 /** Autogenerated input type of practiceBillingReportPaymentChallengeError */
@@ -17183,6 +17809,37 @@ export type XeroRepeatingInvoiceStopRemoteFailedPayload = {
   repeatingInvoice: XeroIntegrationRepeatingInvoice;
 };
 
+export type InvoiceResultFragment = {
+  __typename: 'InvoiceResult';
+  id: string;
+  collectionOn?: any;
+  createdOn: any;
+  externalNumber?: string;
+  externalUrl?: string;
+  paymentFailedOn?: any;
+  paymentStatus: SearchInvoicePaymentStatusType;
+  payoutOn?: any;
+  updatedAt: any;
+  amountWithTax: { __typename: 'Money'; format: string };
+  client: { __typename: 'ClientResult'; id: string; name: string };
+  paymentMethod?: {
+    __typename: 'SearchInvoicePaymentMethodType';
+    id: string;
+    displayName: string;
+    numberSuffix: string;
+    type: PaymentMethodType;
+  };
+  paymentProgress?: {
+    __typename: 'SearchInvoicePaymentProgressType';
+    currentStep: number;
+    description?: string;
+    displayName: string;
+    status: SearchInvoicePaymentProgressStatusType;
+    statusLevel: SearchInvoicePaymentProgressStatusLevelType;
+    totalSteps: number;
+  };
+};
+
 export type AcknowledgementAddMutationVariables = Exact<{
   id: Scalars['ID']['input'];
   level: AcknowledgementLevel;
@@ -17245,5 +17902,89 @@ export type CurrentPracticeQuery = {
     referenceNumber: string;
     name: string;
     countryCode: any;
+  };
+};
+
+export type SearchInvoicesQueryVariables = Exact<{
+  booleanFilters?: InputMaybe<
+    Array<SearchQueryBooleanFilterInput> | SearchQueryBooleanFilterInput
+  >;
+  dateFilters?: InputMaybe<
+    Array<SearchQueryDateFilterInput> | SearchQueryDateFilterInput
+  >;
+  relativeDateFilters?: InputMaybe<
+    | Array<SearchQueryRelativeDateFilterInput>
+    | SearchQueryRelativeDateFilterInput
+  >;
+  numberFilters?: InputMaybe<
+    Array<SearchQueryNumberFilterInput> | SearchQueryNumberFilterInput
+  >;
+  textFilters?: InputMaybe<
+    Array<SearchQueryTextFilterInput> | SearchQueryTextFilterInput
+  >;
+  sort?: InputMaybe<SearchQuerySortInput>;
+  pagination?: InputMaybe<PaginationInput>;
+}>;
+
+export type SearchInvoicesQuery = {
+  __typename: 'Query';
+  search: {
+    __typename: 'Search';
+    pagedQuery: {
+      __typename: 'SearchQuery';
+      totalCount: number;
+      results: {
+        __typename: 'ResultConnection';
+        edges: Array<{
+          __typename: 'ResultEdge';
+          node:
+            | { __typename: 'AppClientResult' }
+            | { __typename: 'BillingItemResult' }
+            | { __typename: 'ClientResult' }
+            | { __typename: 'IgnitionAppServiceType' }
+            | {
+                __typename: 'InvoiceResult';
+                id: string;
+                collectionOn?: any;
+                createdOn: any;
+                externalNumber?: string;
+                externalUrl?: string;
+                paymentFailedOn?: any;
+                paymentStatus: SearchInvoicePaymentStatusType;
+                payoutOn?: any;
+                updatedAt: any;
+                amountWithTax: { __typename: 'Money'; format: string };
+                client: {
+                  __typename: 'ClientResult';
+                  id: string;
+                  name: string;
+                };
+                paymentMethod?: {
+                  __typename: 'SearchInvoicePaymentMethodType';
+                  id: string;
+                  displayName: string;
+                  numberSuffix: string;
+                  type: PaymentMethodType;
+                };
+                paymentProgress?: {
+                  __typename: 'SearchInvoicePaymentProgressType';
+                  currentStep: number;
+                  description?: string;
+                  displayName: string;
+                  status: SearchInvoicePaymentProgressStatusType;
+                  statusLevel: SearchInvoicePaymentProgressStatusLevelType;
+                  totalSteps: number;
+                };
+              }
+            | { __typename: 'ProposalCustomTemplate' }
+            | { __typename: 'ProposalProvidedTemplate' }
+            | { __typename: 'ProposalResult' }
+            | { __typename: 'QuickbooksIntegrationRecurringTransaction' }
+            | { __typename: 'Service' }
+            | { __typename: 'XeroIntegrationRepeatingInvoice' };
+        }>;
+      };
+      totalValue?: { __typename: 'Money'; format: string };
+    };
   };
 };

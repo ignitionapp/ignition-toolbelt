@@ -11,8 +11,7 @@ import {
   Tooltip,
   useDisclosure,
 } from '@chakra-ui/react';
-import React, { useState, useRef } from 'react';
-import Draggable from 'react-draggable';
+import React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faArrowUpRightFromSquare,
@@ -20,6 +19,7 @@ import {
   faGear,
   faScrewdriverWrench,
   faWandMagicSparkles,
+  faRobot,
   faTerminal,
   faCircleInfo,
 } from '@fortawesome/free-solid-svg-icons';
@@ -32,6 +32,7 @@ import { Header } from './header';
 import { useConsolePractice } from './use-console-practice';
 import { AboutModal } from './about-modal';
 import { CopyButton } from './copy-button';
+import { AiAssistantAction } from './ai-assistant-action/ai-assistant-action';
 
 const isDevelopmentEnv = getEnvByUrl(window.location.href) === 'development';
 const iconUrl = chrome.runtime.getURL('icon-128.png');
@@ -52,8 +53,6 @@ export const Bubble = ({
   onClickGraphiql(url: string, name: string): void;
 }) => {
   const { isOpen, onClose, onOpen } = useDisclosure();
-  const [position] = useState({ x: 50, y: -100 });
-  const dragRef = useRef(null);
 
   const { data } = useCurrentPracticeQuery();
   const { id } = data?.currentPractice || {};
@@ -81,126 +80,124 @@ export const Bubble = ({
 
   return (
     <>
-      <Draggable position={position} /* onStop={handleStop}*/>
-        <Flex
-          alignItems="center"
-          data-testid="ignition-toolbelt-bubble"
-          backgroundColor="gray.200"
-          borderRadius="50%"
-          boxShadow="0 1px 5px rgba(0, 0, 0, 0.3)"
-          display="inline-flex"
-          height="50px"
-          justifyContent="center"
-          opacity="0.5"
-          position="fixed"
-          ref={dragRef}
-          transition="opacity 1s, background-color 1s"
-          width="50px"
-          zIndex="655350"
-          _hover={{
-            backgroundColor: 'gray.500',
-            opacity: '1',
-          }}
-        >
-          <Menu isLazy lazyBehavior="keepMounted" arrowPadding={16}>
-            <MenuButton padding="10px">
-              <Image
-                src={iconUrl}
-                width="18px"
-                height="18px"
-                draggable={false}
-              />
-            </MenuButton>
-            <MenuList>
-              <Header csrfToken={csrfToken} />
-              <MenuDivider />
+      <Flex
+        alignItems="center"
+        data-testid="ignition-toolbelt-bubble"
+        backgroundColor="gray.200"
+        borderRadius="50%"
+        boxShadow="0 1px 5px rgba(0, 0, 0, 0.3)"
+        display="inline-flex"
+        height="50px"
+        justifyContent="center"
+        opacity="0.5"
+        position="fixed"
+        left="50px"
+        bottom="50px"
+        transition="opacity 1s, background-color 1s"
+        width="50px"
+        zIndex="655350"
+        _hover={{
+          backgroundColor: 'gray.500',
+          opacity: '1',
+        }}
+      >
+        <Menu isLazy lazyBehavior="keepMounted" arrowPadding={16}>
+          <MenuButton padding="10px">
+            <Image src={iconUrl} width="18px" height="18px" draggable={false} />
+          </MenuButton>
+          <MenuList>
+            <Header csrfToken={csrfToken} />
+            <MenuDivider />
+            <MenuItem
+              icon={<FontAwesomeIcon fixedWidth icon={faScrewdriverWrench} />}
+              onClick={handleClickMissionControl}
+            >
+              <Flex justifyContent="space-between">
+                <Text>Mission Control</Text>
+                <Tooltip
+                  label="Copy Mission Control URL"
+                  aria-label="Click to copy Mission Control URL"
+                  placement="right"
+                  gutter={16}
+                  shouldWrapChildren={true}
+                >
+                  <CopyButton
+                    value={`${window.location.origin}/console/practice/${id}`}
+                  />
+                </Tooltip>
+              </Flex>
+            </MenuItem>
+            <MenuItem
+              icon={<FontAwesomeIcon fixedWidth icon={faFlag} />}
+              onClick={onAcknowledgementClick}
+            >
+              Acknowledgements
+            </MenuItem>
+            <MenuItem
+              icon={<FontAwesomeIcon fixedWidth icon={faTerminal} />}
+              onClick={handleClickGraphiql}
+            >
+              GraphiQL
+            </MenuItem>
+            {stripeDashboardUri ? (
               <MenuItem
-                icon={<FontAwesomeIcon fixedWidth icon={faScrewdriverWrench} />}
-                onClick={handleClickMissionControl}
+                as="a"
+                href={stripeDashboardUri}
+                target="_blank"
+                // @ts-ignore
+                icon={<FontAwesomeIcon fixedWidth icon={faStripeS} />}
               >
                 <Flex justifyContent="space-between">
-                  <Text>Mission Control</Text>
+                  <HStack>
+                    <Text>Stripe dashboard</Text>
+                    <Text as="span" fontSize="xsmall">
+                      <FontAwesomeIcon
+                        fixedWidth
+                        icon={faArrowUpRightFromSquare}
+                      />
+                    </Text>
+                  </HStack>
                   <Tooltip
-                    label="Copy Mission Control URL"
-                    aria-label="Click to copy Mission Control URL"
+                    label="Copy Stripe Dashboard URL"
+                    aria-label="Click to Stripe Dashboard URL"
                     placement="right"
                     gutter={16}
                     shouldWrapChildren={true}
                   >
-                    <CopyButton
-                      value={`${window.location.origin}/console/practice/${id}`}
-                    />
+                    <CopyButton value={stripeDashboardUri} />
                   </Tooltip>
                 </Flex>
               </MenuItem>
+            ) : null}
+            {isDevelopmentEnv ? (
               <MenuItem
-                icon={<FontAwesomeIcon fixedWidth icon={faFlag} />}
-                onClick={onAcknowledgementClick}
+                icon={<FontAwesomeIcon fixedWidth icon={faWandMagicSparkles} />}
+                onClick={onClickCreateNewAccount}
               >
-                Acknowledgements
+                Create new account
               </MenuItem>
-              <MenuItem
-                icon={<FontAwesomeIcon fixedWidth icon={faTerminal} />}
-                onClick={handleClickGraphiql}
-              >
-                GraphiQL
-              </MenuItem>
-              {stripeDashboardUri ? (
-                <MenuItem
-                  as="a"
-                  href={stripeDashboardUri}
-                  target="_blank"
-                  // @ts-ignore
-                  icon={<FontAwesomeIcon fixedWidth icon={faStripeS} />}
-                >
-                  <Flex justifyContent="space-between">
-                    <HStack>
-                      <Text>Stripe dashboard</Text>
-                      <Text as="span" fontSize="xsmall">
-                        <FontAwesomeIcon
-                          fixedWidth
-                          icon={faArrowUpRightFromSquare}
-                        />
-                      </Text>
-                    </HStack>
-                    <Tooltip
-                      label="Copy Stripe Dashboard URL"
-                      aria-label="Click to Stripe Dashboard URL"
-                      placement="right"
-                      gutter={16}
-                      shouldWrapChildren={true}
-                    >
-                      <CopyButton value={stripeDashboardUri} />
-                    </Tooltip>
-                  </Flex>
-                </MenuItem>
-              ) : null}
-              {isDevelopmentEnv ? (
-                <MenuItem
-                  icon={
-                    <FontAwesomeIcon fixedWidth icon={faWandMagicSparkles} />
-                  }
-                  onClick={onClickCreateNewAccount}
-                >
-                  Create new account
-                </MenuItem>
-              ) : null}
-              <MenuItem
-                icon={<FontAwesomeIcon fixedWidth icon={faGear} />}
-                onClick={onPanelClick}
-              >
-                Settings
-              </MenuItem>
-              <MenuItem
-                icon={<FontAwesomeIcon fixedWidth icon={faCircleInfo} />}
-                onClick={onOpen}
-              >
-                About
-              </MenuItem>
-            </MenuList>
-          </Menu>
-        </Flex>
-      </Draggable>
+            ) : null}
+            <AiAssistantAction
+              icon={<FontAwesomeIcon fixedWidth icon={faRobot} />}
+              as={MenuItem}
+            >
+              AI Assistant
+            </AiAssistantAction>
+            <MenuItem
+              icon={<FontAwesomeIcon fixedWidth icon={faGear} />}
+              onClick={onPanelClick}
+            >
+              Settings
+            </MenuItem>
+            <MenuItem
+              icon={<FontAwesomeIcon fixedWidth icon={faCircleInfo} />}
+              onClick={onOpen}
+            >
+              About
+            </MenuItem>
+          </MenuList>
+        </Menu>
+      </Flex>
       <AboutModal isOpen={isOpen} onClose={onClose} />
     </>
   );

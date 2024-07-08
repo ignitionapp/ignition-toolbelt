@@ -5,7 +5,40 @@ import type * as Types from './types';
 import { gql } from '@apollo/client';
 import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
-
+export const InvoiceResultFragmentDoc = gql`
+  fragment invoiceResult on InvoiceResult {
+    id
+    amountWithTax {
+      format
+    }
+    client {
+      id
+      name
+    }
+    collectionOn
+    createdOn
+    externalNumber
+    externalUrl
+    paymentFailedOn
+    paymentMethod {
+      id
+      displayName
+      numberSuffix
+      type
+    }
+    paymentProgress {
+      currentStep
+      description
+      displayName
+      status
+      statusLevel
+      totalSteps
+    }
+    paymentStatus
+    payoutOn
+    updatedAt
+  }
+`;
 export const AcknowledgementAddDocument = gql`
   mutation acknowledgementAdd($id: ID!, $level: AcknowledgementLevel!) {
     acknowledgementAdd(input: { id: $id, level: $level }) {
@@ -332,4 +365,115 @@ export type CurrentPracticeSuspenseQueryHookResult = ReturnType<
 export type CurrentPracticeQueryResult = Apollo.QueryResult<
   Types.CurrentPracticeQuery,
   Types.CurrentPracticeQueryVariables
+>;
+export const SearchInvoicesDocument = gql`
+  query searchInvoices(
+    $booleanFilters: [SearchQueryBooleanFilterInput!]
+    $dateFilters: [SearchQueryDateFilterInput!]
+    $relativeDateFilters: [SearchQueryRelativeDateFilterInput!]
+    $numberFilters: [SearchQueryNumberFilterInput!]
+    $textFilters: [SearchQueryTextFilterInput!]
+    $sort: SearchQuerySortInput
+    $pagination: PaginationInput
+  ) {
+    search {
+      pagedQuery(
+        type: INVOICE
+        booleanFilters: $booleanFilters
+        dateFilters: $dateFilters
+        relativeDateFilters: $relativeDateFilters
+        numberFilters: $numberFilters
+        textFilters: $textFilters
+        sort: $sort
+        pagination: $pagination
+      ) {
+        results {
+          edges {
+            node {
+              ... on InvoiceResult {
+                ...invoiceResult
+              }
+            }
+          }
+        }
+        totalCount
+        totalValue {
+          format
+        }
+      }
+    }
+  }
+  ${InvoiceResultFragmentDoc}
+`;
+
+/**
+ * __useSearchInvoicesQuery__
+ *
+ * To run a query within a React component, call `useSearchInvoicesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useSearchInvoicesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useSearchInvoicesQuery({
+ *   variables: {
+ *      booleanFilters: // value for 'booleanFilters'
+ *      dateFilters: // value for 'dateFilters'
+ *      relativeDateFilters: // value for 'relativeDateFilters'
+ *      numberFilters: // value for 'numberFilters'
+ *      textFilters: // value for 'textFilters'
+ *      sort: // value for 'sort'
+ *      pagination: // value for 'pagination'
+ *   },
+ * });
+ */
+export function useSearchInvoicesQuery(
+  baseOptions?: Apollo.QueryHookOptions<
+    Types.SearchInvoicesQuery,
+    Types.SearchInvoicesQueryVariables
+  >
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<
+    Types.SearchInvoicesQuery,
+    Types.SearchInvoicesQueryVariables
+  >(SearchInvoicesDocument, options);
+}
+export function useSearchInvoicesLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    Types.SearchInvoicesQuery,
+    Types.SearchInvoicesQueryVariables
+  >
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<
+    Types.SearchInvoicesQuery,
+    Types.SearchInvoicesQueryVariables
+  >(SearchInvoicesDocument, options);
+}
+export function useSearchInvoicesSuspenseQuery(
+  baseOptions?: Apollo.SuspenseQueryHookOptions<
+    Types.SearchInvoicesQuery,
+    Types.SearchInvoicesQueryVariables
+  >
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useSuspenseQuery<
+    Types.SearchInvoicesQuery,
+    Types.SearchInvoicesQueryVariables
+  >(SearchInvoicesDocument, options);
+}
+export type SearchInvoicesQueryHookResult = ReturnType<
+  typeof useSearchInvoicesQuery
+>;
+export type SearchInvoicesLazyQueryHookResult = ReturnType<
+  typeof useSearchInvoicesLazyQuery
+>;
+export type SearchInvoicesSuspenseQueryHookResult = ReturnType<
+  typeof useSearchInvoicesSuspenseQuery
+>;
+export type SearchInvoicesQueryResult = Apollo.QueryResult<
+  Types.SearchInvoicesQuery,
+  Types.SearchInvoicesQueryVariables
 >;

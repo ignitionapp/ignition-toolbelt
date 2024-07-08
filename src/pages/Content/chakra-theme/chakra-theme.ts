@@ -1,4 +1,5 @@
 import { extendBaseTheme, theme } from '@chakra-ui/react';
+import { HtmlContent } from './html-content';
 
 export const chakraTheme = extendBaseTheme(theme, {
   semanticTokens: {
