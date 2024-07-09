@@ -1,0 +1,46 @@
+query search(
+  $searchType: SearchType!
+  $booleanFilters: [SearchQueryBooleanFilterInput!]
+  $dateFilters: [SearchQueryDateFilterInput!]
+  $relativeDateFilters: [SearchQueryRelativeDateFilterInput!]
+  $numberFilters: [SearchQueryNumberFilterInput!]
+  $textFilters: [SearchQueryTextFilterInput!]
+  $sort: SearchQuerySortInput
+  $pagination: PaginationInput
+) {
+  search {
+    pagedQuery(
+      type: $searchType
+      booleanFilters: $booleanFilters
+      dateFilters: $dateFilters
+      relativeDateFilters: $relativeDateFilters
+      numberFilters: $numberFilters
+      textFilters: $textFilters
+      sort: $sort
+      pagination: $pagination
+    ) {
+      results {
+        edges {
+          node {
+            ... on ProposalResult {
+              ...proposalResult
+            }
+            ... on ClientResult {
+              ...clientResult
+            }
+            ... on AppClientResult {
+              ...appClientResult
+            }
+            ... on BillingItemResult {
+              ...billingItemResult
+            }
+          }
+        }
+      }
+      totalCount
+      totalValue {
+        format
+      }
+    }
+  }
+}

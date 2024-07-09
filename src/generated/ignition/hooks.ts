@@ -5,6 +5,100 @@ import type * as Types from './types';
 import { gql } from '@apollo/client';
 import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
+export const AppClientResultFragmentDoc = gql`
+  fragment appClientResult on AppClientResult {
+    id
+    appClient {
+      id
+      name
+    }
+    appData {
+      ... on AppClientProconnect {
+        taxReturnType
+      }
+    }
+    appName
+    ignitionappClientId
+    lastSyncedAt
+    primaryContactEmail
+    primaryContactName
+  }
+`;
+export const BillingItemResultFragmentDoc = gql`
+  fragment billingItemResult on BillingItemResult {
+    id
+    amount {
+      format
+    }
+    amountWithTax {
+      format
+    }
+    billingItemStatus
+    billingStrategy
+    client {
+      id
+      name
+    }
+    date
+    itemPrice {
+      description
+      display
+      displayName
+      displayWithTax
+      type
+    }
+    serviceName
+  }
+`;
+export const PaymentMethodRequestFragmentDoc = gql`
+  fragment paymentMethodRequest on PaymentMethodRequest {
+    id
+    errorMessage
+    mostRecentActivityAt
+    state
+  }
+`;
+export const ClientResultFragmentDoc = gql`
+  fragment clientResult on ClientResult {
+    id
+    client {
+      id
+      createdAt
+      defaultContact {
+        id
+        email
+        name
+      }
+      group {
+        id
+        name
+      }
+      isSurchargeEnabled
+      name
+      notificationSettings {
+        recipients {
+          emailAddress
+        }
+      }
+      paymentMethodRequests(last: 1, filter: { requestTypeEq: EMAIL }) {
+        edges {
+          node {
+            ...paymentMethodRequest
+          }
+        }
+      }
+      paymentMethods {
+        createdAt
+        type
+      }
+      state
+    }
+    mostRecentActivityCause
+    mostRecentActivityError
+    mostRecentActivityOn
+  }
+  ${PaymentMethodRequestFragmentDoc}
+`;
 export const InvoiceResultFragmentDoc = gql`
   fragment invoiceResult on InvoiceResult {
     id
@@ -16,7 +110,6 @@ export const InvoiceResultFragmentDoc = gql`
       name
     }
     collectionOn
-    createdOn
     externalNumber
     externalUrl
     paymentFailedOn
@@ -37,6 +130,48 @@ export const InvoiceResultFragmentDoc = gql`
     paymentStatus
     payoutOn
     updatedAt
+  }
+`;
+export const ProposalResultFragmentDoc = gql`
+  fragment proposalResult on ProposalResult {
+    id
+    acceptedOn
+    activeServiceCount
+    client {
+      id
+      createdAt
+      groupContactEmail
+      groupName
+      manager
+      name
+      partner
+      primaryContactEmail
+      tags
+      updatedAt
+    }
+    clientSlug
+    completedOn
+    createdAt
+    createdOn
+    currency
+    effectiveStartDate
+    expiryDate
+    isRenewed
+    minimumValueCents
+    mostRecentActivityCause
+    mostRecentActivityError
+    mostRecentActivityOn
+    name
+    referenceNumber
+    remindersSentCount
+    renewal
+    reviewAssignee
+    reviewState
+    sentOn
+    status
+    updatedAt
+    viewedByClient
+    viewedByClientOn
   }
 `;
 export const AcknowledgementAddDocument = gql`
@@ -365,6 +500,131 @@ export type CurrentPracticeSuspenseQueryHookResult = ReturnType<
 export type CurrentPracticeQueryResult = Apollo.QueryResult<
   Types.CurrentPracticeQuery,
   Types.CurrentPracticeQueryVariables
+>;
+export const SearchDocument = gql`
+  query search(
+    $searchType: SearchType!
+    $booleanFilters: [SearchQueryBooleanFilterInput!]
+    $dateFilters: [SearchQueryDateFilterInput!]
+    $relativeDateFilters: [SearchQueryRelativeDateFilterInput!]
+    $numberFilters: [SearchQueryNumberFilterInput!]
+    $textFilters: [SearchQueryTextFilterInput!]
+    $sort: SearchQuerySortInput
+    $pagination: PaginationInput
+  ) {
+    search {
+      pagedQuery(
+        type: $searchType
+        booleanFilters: $booleanFilters
+        dateFilters: $dateFilters
+        relativeDateFilters: $relativeDateFilters
+        numberFilters: $numberFilters
+        textFilters: $textFilters
+        sort: $sort
+        pagination: $pagination
+      ) {
+        results {
+          edges {
+            node {
+              ... on ProposalResult {
+                ...proposalResult
+              }
+              ... on ClientResult {
+                ...clientResult
+              }
+              ... on AppClientResult {
+                ...appClientResult
+              }
+              ... on BillingItemResult {
+                ...billingItemResult
+              }
+            }
+          }
+        }
+        totalCount
+        totalValue {
+          format
+        }
+      }
+    }
+  }
+  ${ProposalResultFragmentDoc}
+  ${ClientResultFragmentDoc}
+  ${AppClientResultFragmentDoc}
+  ${BillingItemResultFragmentDoc}
+`;
+
+/**
+ * __useSearchQuery__
+ *
+ * To run a query within a React component, call `useSearchQuery` and pass it any options that fit your needs.
+ * When your component renders, `useSearchQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useSearchQuery({
+ *   variables: {
+ *      searchType: // value for 'searchType'
+ *      booleanFilters: // value for 'booleanFilters'
+ *      dateFilters: // value for 'dateFilters'
+ *      relativeDateFilters: // value for 'relativeDateFilters'
+ *      numberFilters: // value for 'numberFilters'
+ *      textFilters: // value for 'textFilters'
+ *      sort: // value for 'sort'
+ *      pagination: // value for 'pagination'
+ *   },
+ * });
+ */
+export function useSearchQuery(
+  baseOptions: Apollo.QueryHookOptions<
+    Types.SearchQuery,
+    Types.SearchQueryVariables
+  > &
+    (
+      | { variables: Types.SearchQueryVariables; skip?: boolean }
+      | { skip: boolean }
+    )
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<Types.SearchQuery, Types.SearchQueryVariables>(
+    SearchDocument,
+    options
+  );
+}
+export function useSearchLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    Types.SearchQuery,
+    Types.SearchQueryVariables
+  >
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<Types.SearchQuery, Types.SearchQueryVariables>(
+    SearchDocument,
+    options
+  );
+}
+export function useSearchSuspenseQuery(
+  baseOptions?: Apollo.SuspenseQueryHookOptions<
+    Types.SearchQuery,
+    Types.SearchQueryVariables
+  >
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useSuspenseQuery<Types.SearchQuery, Types.SearchQueryVariables>(
+    SearchDocument,
+    options
+  );
+}
+export type SearchQueryHookResult = ReturnType<typeof useSearchQuery>;
+export type SearchLazyQueryHookResult = ReturnType<typeof useSearchLazyQuery>;
+export type SearchSuspenseQueryHookResult = ReturnType<
+  typeof useSearchSuspenseQuery
+>;
+export type SearchQueryResult = Apollo.QueryResult<
+  Types.SearchQuery,
+  Types.SearchQueryVariables
 >;
 export const SearchInvoicesDocument = gql`
   query searchInvoices(

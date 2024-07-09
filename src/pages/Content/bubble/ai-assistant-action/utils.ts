@@ -1,6 +1,4 @@
-import { API_ENDPOINT, INVOICE_FUNCITON } from './vars';
-
-const tools = [INVOICE_FUNCITON];
+import { API_ENDPOINT, TOOLS } from './vars';
 
 const isValidJSON = (str: string) => {
   try {
@@ -68,7 +66,7 @@ export const askAssistant = async ({
       body: JSON.stringify({
         model: 'gpt-4-1106-preview',
         messages,
-        tools: isFunctionCall ? tools : undefined,
+        tools: isFunctionCall ? TOOLS : undefined,
         tool_choice: isFunctionCall ? 'auto' : undefined,
         temperature: 0,
         stream: true,
@@ -128,8 +126,14 @@ export const askAssistant = async ({
         isValidJSON(functionArguments)
       ) {
         onUpdate('Yes, I can help with that. One moment...');
-
         const parameters = JSON.parse(functionArguments);
+
+        console.info(
+          `[DEBUG] Function calling: ${functionName}(${JSON.stringify(
+            parameters
+          )})`
+        );
+
         const functionResult = await onCallFunction(functionName, parameters);
 
         await askAssistant({

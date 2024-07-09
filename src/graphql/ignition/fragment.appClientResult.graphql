@@ -1,0 +1,19 @@
+#import '../fragment.paymentMethodRequest.graphql'
+
+fragment appClientResult on AppClientResult {
+  id
+  appClient {
+    id
+    name
+  }
+  appData {
+    ... on AppClientProconnect {
+      taxReturnType
+    }
+  }
+  appName
+  ignitionappClientId
+  lastSyncedAt
+  primaryContactEmail
+  primaryContactName
+}

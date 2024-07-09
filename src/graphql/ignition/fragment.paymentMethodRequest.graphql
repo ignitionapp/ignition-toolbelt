@@ -1,0 +1,6 @@
+fragment paymentMethodRequest on PaymentMethodRequest {
+  id
+  errorMessage
+  mostRecentActivityAt
+  state
+}

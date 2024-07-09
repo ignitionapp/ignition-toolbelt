@@ -1,0 +1,24 @@
+fragment billingItemResult on BillingItemResult {
+  id
+  amount {
+    format
+  }
+  amountWithTax {
+    format
+  }
+  billingItemStatus
+  billingStrategy
+  client {
+    id
+    name
+  }
+  date
+  itemPrice {
+    description
+    display
+    displayName
+    displayWithTax
+    type
+  }
+  serviceName
+}
