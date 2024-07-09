@@ -37,7 +37,11 @@ const updateLocalStorage = debounce((key: string, value: string) => {
   });
 }, 500);
 
-export const AcknowledgementList = () => {
+type Props = {
+  onUpdateSuccess(): void;
+};
+
+export const AcknowledgementList = ({ onUpdateSuccess }: Props) => {
   const { data, loading, refetch } = useAcknowledgementsQuery();
   const [acks, setAcks] = useState<Acknowledgement[]>([]);
   const [searchKeyword, setSearchKeyword] = useState<string>('');
@@ -90,6 +94,7 @@ export const AcknowledgementList = () => {
       await acknowledgementAdd({ variables: { id, level } });
     }
     await refetch();
+    onUpdateSuccess();
   };
 
   const handleRemove = async (id: string) => {
