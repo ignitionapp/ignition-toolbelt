@@ -33,7 +33,7 @@ export const autofillBusinessDetailsPage = async (
 
   const companyTaxId = q<HTMLInputElement>('input[name="company[tax_id]"]');
   if (companyTaxId) {
-    simulateType(companyTaxId, generateFakeABN(faker));
+    simulateType(companyTaxId, generateFakeABN(/*faker*/));
   }
 
   const doingBusinessAs = q<HTMLInputElement>(
