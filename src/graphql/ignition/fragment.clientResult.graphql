@@ -1,0 +1,40 @@
+#import '../fragment.paymentMethodRequest.graphql'
+
+fragment clientResult on ClientResult {
+  id
+  client {
+    id
+    createdAt
+    defaultContact {
+      id
+      email
+      name
+    }
+    group {
+      id
+      name
+    }
+    isSurchargeEnabled
+    name
+    notificationSettings {
+      recipients {
+        emailAddress
+      }
+    }
+    paymentMethodRequests(last: 1, filter: { requestTypeEq: EMAIL }) {
+      edges {
+        node {
+          ...paymentMethodRequest
+        }
+      }
+    }
+    paymentMethods {
+      createdAt
+      type
+    }
+    state
+  }
+  mostRecentActivityCause
+  mostRecentActivityError
+  mostRecentActivityOn
+}

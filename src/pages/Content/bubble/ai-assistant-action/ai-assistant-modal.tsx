@@ -34,7 +34,13 @@ export const AiAssistantModal = ({
   isOpen: boolean;
   onClose(): void;
 }) => {
-  const { searchInvoices } = useApi();
+  const {
+    searchAppClients,
+    searchBillingItems,
+    searchClients,
+    searchInvoices,
+    searchProposals,
+  } = useApi();
   const conversationRef = useRef<HTMLDivElement>(null);
 
   const { handleSubmit, register, reset } = useForm<FormValues>({
@@ -66,9 +72,17 @@ export const AiAssistantModal = ({
   };
 
   const handleCallFunction = async (functionName: string, parameters: any) => {
-    if (functionName === 'searchInvoices') {
-      const { keywords } = parameters;
-      return searchInvoices(keywords);
+    switch (functionName) {
+      case 'searchAppClients':
+        return searchAppClients({ ...parameters });
+      case 'searchBillingItems':
+        return searchBillingItems({ ...parameters });
+      case 'searchClients':
+        return searchClients({ ...parameters });
+      case 'searchProposals':
+        return searchProposals({ ...parameters });
+      case 'searchInvoices':
+        return searchInvoices({ ...parameters });
     }
   };
 

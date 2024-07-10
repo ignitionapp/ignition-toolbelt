@@ -14522,13 +14522,6 @@ export enum SearchNumberFilterCondition {
   EQUALS = 'EQUALS',
 }
 
-export type SearchQuery = {
-  __typename: 'SearchQuery';
-  results: ResultConnection;
-  totalCount: Scalars['Int']['output'];
-  totalValue?: Maybe<Money>;
-};
-
 export type SearchQueryResultsArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   before?: InputMaybe<Scalars['String']['input']>;
@@ -17809,11 +17802,120 @@ export type XeroRepeatingInvoiceStopRemoteFailedPayload = {
   repeatingInvoice: XeroIntegrationRepeatingInvoice;
 };
 
+export type AppClientResultFragment = {
+  __typename: 'AppClientResult';
+  id: string;
+  appName: string;
+  ignitionappClientId?: string;
+  lastSyncedAt?: any;
+  primaryContactEmail?: string;
+  primaryContactName?: string;
+  appClient?: { __typename: 'AppClient'; id: string; name: string };
+  appData: { __typename: 'AppClientProconnect'; taxReturnType?: string };
+};
+
+export type BillingItemResultFragment = {
+  __typename: 'BillingItemResult';
+  id: string;
+  billingItemStatus: ClientBillingBillingItemState;
+  billingStrategy: string;
+  date: any;
+  serviceName: string;
+  amount?: { __typename: 'Money'; format: string };
+  amountWithTax?: { __typename: 'Money'; format: string };
+  client: { __typename: 'ClientResult'; id: string; name: string };
+  itemPrice:
+    | {
+        __typename: 'ProposalFixedPrice';
+        description: string;
+        display: string;
+        displayName: string;
+        displayWithTax: string;
+        type: ProposalPriceType;
+      }
+    | {
+        __typename: 'ProposalIncludedPrice';
+        description: string;
+        display: string;
+        displayName: string;
+        displayWithTax: string;
+        type: ProposalPriceType;
+      }
+    | {
+        __typename: 'ProposalMinimumPrice';
+        description: string;
+        display: string;
+        displayName: string;
+        displayWithTax: string;
+        type: ProposalPriceType;
+      }
+    | {
+        __typename: 'ProposalPriceRange';
+        description: string;
+        display: string;
+        displayName: string;
+        displayWithTax: string;
+        type: ProposalPriceType;
+      }
+    | {
+        __typename: 'ProposalUnitPrice';
+        description: string;
+        display: string;
+        displayName: string;
+        displayWithTax: string;
+        type: ProposalPriceType;
+      };
+};
+
+export type ClientResultFragment = {
+  __typename: 'ClientResult';
+  id: string;
+  mostRecentActivityCause?: string;
+  mostRecentActivityError?: string;
+  mostRecentActivityOn?: any;
+  client: {
+    __typename: 'Client';
+    id: string;
+    createdAt: any;
+    isSurchargeEnabled: boolean;
+    name: string;
+    state: ClientState;
+    defaultContact: {
+      __typename: 'Contact';
+      id: string;
+      email?: any;
+      name: string;
+    };
+    group?: { __typename: 'ClientGroup'; id: string; name: string };
+    notificationSettings?: {
+      __typename: 'ClientNotificationSettings';
+      recipients: Array<{ __typename: 'Recipient'; emailAddress: any }>;
+    };
+    paymentMethodRequests: {
+      __typename: 'PaymentMethodRequestConnection';
+      edges: Array<{
+        __typename: 'PaymentMethodRequestEdge';
+        node: {
+          __typename: 'PaymentMethodRequest';
+          id: string;
+          errorMessage?: string;
+          mostRecentActivityAt: any;
+          state: PaymentMethodRequestState;
+        };
+      }>;
+    };
+    paymentMethods?: Array<{
+      __typename: 'PaymentMethod';
+      createdAt: any;
+      type: PaymentMethodType;
+    }>;
+  };
+};
+
 export type InvoiceResultFragment = {
   __typename: 'InvoiceResult';
   id: string;
   collectionOn?: any;
-  createdOn: any;
   externalNumber?: string;
   externalUrl?: string;
   paymentFailedOn?: any;
@@ -17837,6 +17939,57 @@ export type InvoiceResultFragment = {
     status: SearchInvoicePaymentProgressStatusType;
     statusLevel: SearchInvoicePaymentProgressStatusLevelType;
     totalSteps: number;
+  };
+};
+
+export type PaymentMethodRequestFragment = {
+  __typename: 'PaymentMethodRequest';
+  id: string;
+  errorMessage?: string;
+  mostRecentActivityAt: any;
+  state: PaymentMethodRequestState;
+};
+
+export type ProposalResultFragment = {
+  __typename: 'ProposalResult';
+  id: string;
+  acceptedOn?: any;
+  activeServiceCount: number;
+  clientSlug: string;
+  completedOn?: any;
+  createdAt: any;
+  createdOn: any;
+  currency: string;
+  effectiveStartDate?: any;
+  expiryDate?: any;
+  isRenewed: boolean;
+  minimumValueCents: any;
+  mostRecentActivityCause?: string;
+  mostRecentActivityError?: string;
+  mostRecentActivityOn?: any;
+  name: string;
+  referenceNumber?: string;
+  remindersSentCount: number;
+  renewal: boolean;
+  reviewAssignee?: string;
+  reviewState?: ProposalReviewState;
+  sentOn?: string;
+  status: ProposalState;
+  updatedAt: any;
+  viewedByClient: boolean;
+  viewedByClientOn?: any;
+  client: {
+    __typename: 'ClientResult';
+    id: string;
+    createdAt: any;
+    groupContactEmail?: string;
+    groupName?: string;
+    manager?: string;
+    name: string;
+    partner?: string;
+    primaryContactEmail?: string;
+    tags?: string;
+    updatedAt: any;
   };
 };
 
@@ -17905,6 +18058,221 @@ export type CurrentPracticeQuery = {
   };
 };
 
+export type SearchQueryVariables = Exact<{
+  searchType: SearchType;
+  booleanFilters?: InputMaybe<
+    Array<SearchQueryBooleanFilterInput> | SearchQueryBooleanFilterInput
+  >;
+  dateFilters?: InputMaybe<
+    Array<SearchQueryDateFilterInput> | SearchQueryDateFilterInput
+  >;
+  relativeDateFilters?: InputMaybe<
+    | Array<SearchQueryRelativeDateFilterInput>
+    | SearchQueryRelativeDateFilterInput
+  >;
+  numberFilters?: InputMaybe<
+    Array<SearchQueryNumberFilterInput> | SearchQueryNumberFilterInput
+  >;
+  textFilters?: InputMaybe<
+    Array<SearchQueryTextFilterInput> | SearchQueryTextFilterInput
+  >;
+  sort?: InputMaybe<SearchQuerySortInput>;
+  pagination?: InputMaybe<PaginationInput>;
+}>;
+
+export type SearchQuery = {
+  __typename: 'Query';
+  search: {
+    __typename: 'Search';
+    pagedQuery: {
+      __typename: 'SearchQuery';
+      totalCount: number;
+      results: {
+        __typename: 'ResultConnection';
+        edges: Array<{
+          __typename: 'ResultEdge';
+          node:
+            | {
+                __typename: 'AppClientResult';
+                id: string;
+                appName: string;
+                ignitionappClientId?: string;
+                lastSyncedAt?: any;
+                primaryContactEmail?: string;
+                primaryContactName?: string;
+                appClient?: {
+                  __typename: 'AppClient';
+                  id: string;
+                  name: string;
+                };
+                appData: {
+                  __typename: 'AppClientProconnect';
+                  taxReturnType?: string;
+                };
+              }
+            | {
+                __typename: 'BillingItemResult';
+                id: string;
+                billingItemStatus: ClientBillingBillingItemState;
+                billingStrategy: string;
+                date: any;
+                serviceName: string;
+                amount?: { __typename: 'Money'; format: string };
+                amountWithTax?: { __typename: 'Money'; format: string };
+                client: {
+                  __typename: 'ClientResult';
+                  id: string;
+                  name: string;
+                };
+                itemPrice:
+                  | {
+                      __typename: 'ProposalFixedPrice';
+                      description: string;
+                      display: string;
+                      displayName: string;
+                      displayWithTax: string;
+                      type: ProposalPriceType;
+                    }
+                  | {
+                      __typename: 'ProposalIncludedPrice';
+                      description: string;
+                      display: string;
+                      displayName: string;
+                      displayWithTax: string;
+                      type: ProposalPriceType;
+                    }
+                  | {
+                      __typename: 'ProposalMinimumPrice';
+                      description: string;
+                      display: string;
+                      displayName: string;
+                      displayWithTax: string;
+                      type: ProposalPriceType;
+                    }
+                  | {
+                      __typename: 'ProposalPriceRange';
+                      description: string;
+                      display: string;
+                      displayName: string;
+                      displayWithTax: string;
+                      type: ProposalPriceType;
+                    }
+                  | {
+                      __typename: 'ProposalUnitPrice';
+                      description: string;
+                      display: string;
+                      displayName: string;
+                      displayWithTax: string;
+                      type: ProposalPriceType;
+                    };
+              }
+            | {
+                __typename: 'ClientResult';
+                id: string;
+                mostRecentActivityCause?: string;
+                mostRecentActivityError?: string;
+                mostRecentActivityOn?: any;
+                client: {
+                  __typename: 'Client';
+                  id: string;
+                  createdAt: any;
+                  isSurchargeEnabled: boolean;
+                  name: string;
+                  state: ClientState;
+                  defaultContact: {
+                    __typename: 'Contact';
+                    id: string;
+                    email?: any;
+                    name: string;
+                  };
+                  group?: {
+                    __typename: 'ClientGroup';
+                    id: string;
+                    name: string;
+                  };
+                  notificationSettings?: {
+                    __typename: 'ClientNotificationSettings';
+                    recipients: Array<{
+                      __typename: 'Recipient';
+                      emailAddress: any;
+                    }>;
+                  };
+                  paymentMethodRequests: {
+                    __typename: 'PaymentMethodRequestConnection';
+                    edges: Array<{
+                      __typename: 'PaymentMethodRequestEdge';
+                      node: {
+                        __typename: 'PaymentMethodRequest';
+                        id: string;
+                        errorMessage?: string;
+                        mostRecentActivityAt: any;
+                        state: PaymentMethodRequestState;
+                      };
+                    }>;
+                  };
+                  paymentMethods?: Array<{
+                    __typename: 'PaymentMethod';
+                    createdAt: any;
+                    type: PaymentMethodType;
+                  }>;
+                };
+              }
+            | { __typename: 'IgnitionAppServiceType' }
+            | { __typename: 'InvoiceResult' }
+            | { __typename: 'ProposalCustomTemplate' }
+            | { __typename: 'ProposalProvidedTemplate' }
+            | {
+                __typename: 'ProposalResult';
+                id: string;
+                acceptedOn?: any;
+                activeServiceCount: number;
+                clientSlug: string;
+                completedOn?: any;
+                createdAt: any;
+                createdOn: any;
+                currency: string;
+                effectiveStartDate?: any;
+                expiryDate?: any;
+                isRenewed: boolean;
+                minimumValueCents: any;
+                mostRecentActivityCause?: string;
+                mostRecentActivityError?: string;
+                mostRecentActivityOn?: any;
+                name: string;
+                referenceNumber?: string;
+                remindersSentCount: number;
+                renewal: boolean;
+                reviewAssignee?: string;
+                reviewState?: ProposalReviewState;
+                sentOn?: string;
+                status: ProposalState;
+                updatedAt: any;
+                viewedByClient: boolean;
+                viewedByClientOn?: any;
+                client: {
+                  __typename: 'ClientResult';
+                  id: string;
+                  createdAt: any;
+                  groupContactEmail?: string;
+                  groupName?: string;
+                  manager?: string;
+                  name: string;
+                  partner?: string;
+                  primaryContactEmail?: string;
+                  tags?: string;
+                  updatedAt: any;
+                };
+              }
+            | { __typename: 'QuickbooksIntegrationRecurringTransaction' }
+            | { __typename: 'Service' }
+            | { __typename: 'XeroIntegrationRepeatingInvoice' };
+        }>;
+      };
+      totalValue?: { __typename: 'Money'; format: string };
+    };
+  };
+};
+
 export type SearchInvoicesQueryVariables = Exact<{
   booleanFilters?: InputMaybe<
     Array<SearchQueryBooleanFilterInput> | SearchQueryBooleanFilterInput
@@ -17946,7 +18314,6 @@ export type SearchInvoicesQuery = {
                 __typename: 'InvoiceResult';
                 id: string;
                 collectionOn?: any;
-                createdOn: any;
                 externalNumber?: string;
                 externalUrl?: string;
                 paymentFailedOn?: any;

@@ -1,0 +1,40 @@
+fragment proposalResult on ProposalResult {
+  id
+  acceptedOn
+  activeServiceCount
+  client {
+    id
+    createdAt
+    groupContactEmail
+    groupName
+    manager
+    name
+    partner
+    primaryContactEmail
+    tags
+    updatedAt
+  }
+  clientSlug
+  completedOn
+  createdAt
+  createdOn
+  currency
+  effectiveStartDate
+  expiryDate
+  isRenewed
+  minimumValueCents
+  mostRecentActivityCause
+  mostRecentActivityError
+  mostRecentActivityOn
+  name
+  referenceNumber
+  remindersSentCount
+  renewal
+  reviewAssignee
+  reviewState
+  sentOn
+  status
+  updatedAt
+  viewedByClient
+  viewedByClientOn
+}
