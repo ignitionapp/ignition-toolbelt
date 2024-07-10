@@ -7,24 +7,10 @@ import {
   SearchInvoicePaymentProgressStatusType,
   SearchInvoicePaymentStatusType,
   SearchNumberFilterCondition,
+  SearchSortDirection,
   SearchTextFilterCondition,
   SearchType,
 } from '@generated/ignition/types';
-
-type SearchInvoicesArgs = {
-  amountWithTax?: number;
-  amountWithTaxCondition?: SearchNumberFilterCondition;
-  clientName?: string;
-  collectionOn?: string;
-  collectionOnCondition?: SearchDateFilterCondition;
-  billedOn?: string;
-  billedOnCondition?: SearchDateFilterCondition;
-  paymentProgressStatues?: SearchInvoicePaymentProgressStatusType[];
-  paymentStatus?: SearchInvoicePaymentStatusType;
-  payoutOn?: string;
-  payoutOnCondition?: SearchDateFilterCondition;
-  searchQuery?: string;
-};
 
 export const useApi = () => {
   const [runSearch] = useSearchLazyQuery();
@@ -72,6 +58,26 @@ export const useApi = () => {
   const searchClients = createSearchFunction(SearchType.CLIENT);
   const searchProposals = createSearchFunction(SearchType.PROPOSAL);
 
+  type SearchInvoicesArgs = {
+    amountWithTax?: number;
+    amountWithTaxCondition?: SearchNumberFilterCondition;
+    clientName?: string;
+    collectionOn?: string;
+    collectionOnCondition?: SearchDateFilterCondition;
+    billedOn?: string;
+    billedOnCondition?: SearchDateFilterCondition;
+    paymentProgressStatues?: SearchInvoicePaymentProgressStatusType[];
+    paymentStatus?: SearchInvoicePaymentStatusType;
+    payoutOn?: string;
+    payoutOnCondition?: SearchDateFilterCondition;
+    searchQuery?: string;
+    sortAttribute?: string;
+    sortDirection?: SearchSortDirection;
+    sortRelation?: SearchType;
+    pageNumber?: number;
+    pageSize?: number;
+  };
+
   const searchInvoices = async ({
     amountWithTax,
     amountWithTaxCondition = SearchNumberFilterCondition.EQUALS,
@@ -85,10 +91,24 @@ export const useApi = () => {
     payoutOn,
     payoutOnCondition = SearchDateFilterCondition.EQUALS,
     searchQuery,
+    sortAttribute = 'billed_on',
+    sortDirection = SearchSortDirection.DESC,
+    sortRelation = SearchType.INVOICE,
+    pageNumber = 1,
+    pageSize = 10,
   }: SearchInvoicesArgs = {}) => {
     try {
       const { data } = await runSearchInvoices({
         variables: {
+          sort: {
+            attribute: sortAttribute,
+            direction: sortDirection,
+            relation: sortRelation,
+          },
+          pagination: {
+            pageNumber,
+            pageSize,
+          },
           textFilters: [
             ...(searchQuery
               ? [
