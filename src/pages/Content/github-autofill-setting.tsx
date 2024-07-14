@@ -189,7 +189,7 @@ export const GithubAutofillSetting = () => {
         <FormControl marginBottom={4}>
           <FormLabel htmlFor="githubToken">GitHub Token</FormLabel>
           <InputGroup>
-            <Input type="text" {...register('token')} />
+            <Input type="password" {...register('token')} />
             <InputRightElement>
               <Text color={isTokenValid ? 'green.500' : 'red.500'}>
                 <FontAwesomeIcon

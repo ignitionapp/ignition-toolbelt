@@ -32,9 +32,10 @@ import { Header } from './header';
 import { useConsolePractice } from './use-console-practice';
 import { AboutModal } from './about-modal';
 import { CopyButton } from './copy-button';
-import { AiAssistantAction } from './ai-assistant-action/ai-assistant-action';
+import { AiAssistantAction } from './ai-assistant-action';
 
 const isDevelopmentEnv = getEnvByUrl(window.location.href) === 'development';
+const isProductionEnv = getEnvByUrl(window.location.href) === 'production';
 const iconUrl = chrome.runtime.getURL('icon-128.png');
 
 export const Bubble = ({
@@ -177,12 +178,14 @@ export const Bubble = ({
                 Create new account
               </MenuItem>
             ) : null}
-            <AiAssistantAction
-              icon={<FontAwesomeIcon fixedWidth icon={faRobot} />}
-              as={MenuItem}
-            >
-              AI Assistant
-            </AiAssistantAction>
+            {!isProductionEnv ? (
+              <AiAssistantAction
+                icon={<FontAwesomeIcon fixedWidth icon={faRobot} />}
+                as={MenuItem}
+              >
+                AI Assistant
+              </AiAssistantAction>
+            ) : null}
             <MenuItem
               icon={<FontAwesomeIcon fixedWidth icon={faGear} />}
               onClick={onPanelClick}

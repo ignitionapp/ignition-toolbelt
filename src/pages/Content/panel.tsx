@@ -21,7 +21,8 @@ import {
 import { Faker, en_AU, en, base } from '@faker-js/faker';
 import { FeaturesSetting } from './features-setting';
 import { GithubAutofillSetting } from './github-autofill-setting';
-import { AUTOFILL_PAGES, GITHUB_AUTOFILL } from './lib';
+import { AiAssistantSetting } from './ai-assistant-setting';
+import { AI_ASSISTANT, AUTOFILL_PAGES, GITHUB_AUTOFILL } from './lib';
 
 const faker = new Faker({ locale: [en_AU, en, base] });
 
@@ -36,10 +37,11 @@ export const Panel = ({
   const [name, setName] = useState<string>();
   const [isGithubAutofillEnabled, setGithubAutofillEnablility] = useBoolean();
   const [isAutofillPagesEnabled, setAutofillPagesEnablility] = useBoolean();
+  const [isAiAssistantEnabled, setAiAssistantEnablility] = useBoolean();
 
   useEffect(() => {
     chrome.storage.local
-      .get(['fakerSeedValue', GITHUB_AUTOFILL, AUTOFILL_PAGES])
+      .get(['fakerSeedValue', GITHUB_AUTOFILL, AUTOFILL_PAGES, AI_ASSISTANT])
       .then((results) => {
         const { fakerSeedValue } = results;
         faker.seed(fakerSeedValue);
@@ -47,6 +49,9 @@ export const Panel = ({
         const email = faker.internet.email();
         setName(name);
         setEmail(email);
+        if (results[AI_ASSISTANT]) {
+          setAiAssistantEnablility.on();
+        }
         if (results[AUTOFILL_PAGES]) {
           setAutofillPagesEnablility.on();
         }
@@ -70,7 +75,11 @@ export const Panel = ({
         setGithubAutofillEnablility.off();
       }
     });
-  }, [setAutofillPagesEnablility, setGithubAutofillEnablility]);
+  }, [
+    setAiAssistantEnablility,
+    setAutofillPagesEnablility,
+    setGithubAutofillEnablility,
+  ]);
 
   const handleResetFaker = async () => {
     const fakerSeedValue = new Date().getTime();
@@ -92,6 +101,7 @@ export const Panel = ({
           <Tabs>
             <TabList>
               <Tab>Features</Tab>
+              {isAiAssistantEnabled ? <Tab>AI assistant</Tab> : null}
               {isAutofillPagesEnabled ? (
                 <Tab>Autofill onboarding pages</Tab>
               ) : null}
@@ -104,6 +114,11 @@ export const Panel = ({
               <TabPanel>
                 <FeaturesSetting />
               </TabPanel>
+              {isAiAssistantEnabled ? (
+                <TabPanel>
+                  <AiAssistantSetting />
+                </TabPanel>
+              ) : null}
               {isAutofillPagesEnabled ? (
                 <TabPanel>
                   <VStack spacing="large">

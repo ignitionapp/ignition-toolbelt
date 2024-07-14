@@ -3,6 +3,8 @@ import {
   SearchInvoicePaymentProgressStatusType,
   SearchInvoicePaymentStatusType,
   SearchNumberFilterCondition,
+  SearchSortDirection,
+  SearchType,
 } from '@generated/ignition/types';
 
 const numberFilterConditions = Object.values(SearchNumberFilterCondition);
@@ -155,6 +157,34 @@ export const INVOICE_FUNCTION = {
         searchQuery: {
           type: 'string',
           description: 'The keyword to search for in the invoices.',
+        },
+        sortAttribute: {
+          type: 'string',
+          description: 'The attribute to sort the invoices by.',
+          enum: [
+            'billed_on',
+            'collection_on',
+            'payout_on',
+            'amount_with_tax_cents',
+          ],
+        },
+        sortDirection: {
+          type: 'string',
+          description: 'The relation to sort the invoices by.',
+          enum: [SearchSortDirection.ASC, SearchSortDirection.DESC],
+        },
+        sortRelation: {
+          type: 'string',
+          description: 'The relation to sort the invoices by.',
+          enum: [SearchType.INVOICE, SearchType.CLIENT],
+        },
+        pageNumber: {
+          type: 'number',
+          description: 'The page number to return.',
+        },
+        pageSize: {
+          type: 'number',
+          description: 'The number of items to return per page.',
         },
       },
       required: [],

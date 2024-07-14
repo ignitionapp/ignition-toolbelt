@@ -34,4 +34,9 @@ export const FEATURE_LIST: FeatureItem[] = [
     title: 'NPE Exit',
     description: 'Close NPE editor quickly with an obvious button',
   },
+  {
+    id: 'feature::ai-assistant',
+    title: 'AI assistant',
+    description: 'Get information and help from AI assistant',
+  },
 ];

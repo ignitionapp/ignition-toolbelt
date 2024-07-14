@@ -8,13 +8,13 @@ import {
   ModalContent,
   ModalHeader,
   ModalOverlay,
-  VStack,
   Box,
-  Input,
   Button,
   HStack,
   InputGroup,
   InputRightElement,
+  Textarea,
+  useBoolean,
 } from '@chakra-ui/react';
 import { useForm } from 'react-hook-form';
 import { AI_ASSISTANT } from '../../lib';
@@ -24,7 +24,6 @@ import { useApi } from './use-api';
 
 type FormValues = {
   userMessage: string;
-  token: string;
 };
 
 export const AiAssistantModal = ({
@@ -34,6 +33,7 @@ export const AiAssistantModal = ({
   isOpen: boolean;
   onClose(): void;
 }) => {
+  const [isProcessing, setProcesing] = useBoolean();
   const {
     searchAppClients,
     searchBillingItems,
@@ -46,7 +46,6 @@ export const AiAssistantModal = ({
   const { handleSubmit, register, reset } = useForm<FormValues>({
     defaultValues: {
       userMessage: 'Hey Sparky!',
-      token: '',
     },
   });
 
@@ -56,11 +55,10 @@ export const AiAssistantModal = ({
 
   useEffect(() => {
     chrome.storage.local.get([AI_ASSISTANT]).then((results) => {
-      const { userMessage, token } = results[AI_ASSISTANT] || {
+      const { userMessage } = results[AI_ASSISTANT] || {
         userMessage: 'Hey Sparky!',
-        token: '',
       };
-      reset({ userMessage, token });
+      reset({ userMessage });
     });
   }, [reset]);
 
@@ -103,8 +101,8 @@ export const AiAssistantModal = ({
     }
   };
 
-  const handleSave = async ({ token, userMessage }: FormValues) => {
-    if (userMessage.trim() === '') return;
+  const handleSave = async ({ userMessage }: FormValues) => {
+    if (isProcessing || userMessage.trim() === '') return;
 
     const newMessage = { sender: 'user', message: userMessage };
     setConversationHistory((prevHistory) => [...prevHistory, newMessage]);
@@ -114,6 +112,9 @@ export const AiAssistantModal = ({
     }
 
     try {
+      const result = await chrome.storage.local.get([AI_ASSISTANT]);
+      const { token } = result[AI_ASSISTANT] || {};
+      setProcesing.on();
       await askAssistant({
         messageContent: userMessage,
         messageRole: 'user',
@@ -123,6 +124,14 @@ export const AiAssistantModal = ({
         onUpdate: handleUpdateConversation,
         onCallFunction: handleCallFunction,
       });
+      chrome.storage.local.set({
+        [AI_ASSISTANT]: {
+          userMessage,
+          token,
+        },
+      });
+      reset({ userMessage: '' });
+      setProcesing.off();
     } catch (error) {
       console.error('Error calling OpenAI API:', error);
       const errorMessage = {
@@ -131,14 +140,6 @@ export const AiAssistantModal = ({
       };
       setConversationHistory((prevHistory) => [...prevHistory, errorMessage]);
     }
-
-    chrome.storage.local.set({
-      [AI_ASSISTANT]: {
-        userMessage,
-        token,
-      },
-    });
-    reset({ userMessage: '' });
   };
 
   const handleKeyDown = (event: KeyboardEvent) => {
@@ -148,31 +149,24 @@ export const AiAssistantModal = ({
   };
 
   return (
-    <Modal
-      isCentered
-      isOpen={isOpen}
-      closeOnEsc={false}
-      closeOnOverlayClick={false}
-      onClose={onClose}
-      size="3xl"
-    >
+    <Modal isCentered isOpen={isOpen} onClose={onClose} size="3xl">
       <ModalOverlay />
-      <ModalContent maxWidth="95%" width="800px">
+      <ModalContent maxWidth="95%" width="800px" height="90%">
         <ModalHeader>
-          <Text>AI Assistant: Sparky</Text>
+          <Text>AI assistant</Text>
           <ModalCloseButton />
         </ModalHeader>
-        <ModalBody>
-          <form onSubmit={handleSubmit(handleSave)}>
-            <VStack spacing="large" padding="large">
-              <Box
-                height="500px"
-                overflowY="scroll"
-                ref={conversationRef}
-                width="100%"
-                p={4}
-                border="1px solid lightgray"
-              >
+        <ModalBody pb="large">
+          <form
+            style={{
+              display: 'flex',
+              height: '100%',
+              flexDirection: 'column',
+            }}
+            onSubmit={handleSubmit(handleSave)}
+          >
+            <Box width="100%" flexShrink="1" flexGrow="1" height="0">
+              <Box overflowY="scroll" ref={conversationRef} height="100%">
                 {conversationHistory.map((entry, index) => (
                   <Box key={index} mb={4}>
                     <HStack
@@ -181,40 +175,52 @@ export const AiAssistantModal = ({
                         entry.sender === 'user' ? 'flex-end' : 'flex-start'
                       }
                     >
-                      <strong>
+                      <Box fontWeight="bold" py="medium">
                         {entry.sender === 'user' ? 'You' : 'Sparky'}:
-                      </strong>
-                      <HtmlContent>
-                        <ReactMarkdown>{entry.message}</ReactMarkdown>
-                      </HtmlContent>
+                      </Box>
+                      <Box
+                        backgroundColor={
+                          entry.sender === 'user' ? 'blue.50' : 'gray.50'
+                        }
+                        borderRadius="md"
+                        p="medium"
+                        minWidth="300px"
+                        maxWidth="70%"
+                      >
+                        <HtmlContent sx={{ p: { _last: { mb: 0 } } }}>
+                          <ReactMarkdown>{entry.message}</ReactMarkdown>
+                        </HtmlContent>
+                      </Box>
                     </HStack>
                   </Box>
                 ))}
               </Box>
+            </Box>
+            <Box>
               <InputGroup>
-                <Input
-                  pr="4.5rem"
+                <Textarea
+                  isDisabled={isProcessing}
+                  pr="5rem"
+                  height="4.5rem"
+                  minHeight="4.5rem"
                   placeholder="Your message..."
+                  resize="none"
                   {...register('userMessage')}
                   onKeyDown={handleKeyDown}
-                ></Input>
-                <InputRightElement width="4.5rem">
+                ></Textarea>
+                <InputRightElement width="5rem" mt="medium" mr="medium">
                   <Button
                     colorScheme="brand"
-                    size="sm"
+                    size="lg"
                     type="submit"
-                    height="1.75rem"
+                    height="3rem"
+                    isDisabled={isProcessing}
                   >
                     Send
                   </Button>
                 </InputRightElement>
               </InputGroup>
-              <Input
-                type="password"
-                placeholder="Open AI Token"
-                {...register('token')}
-              />
-            </VStack>
+            </Box>
           </form>
         </ModalBody>
       </ModalContent>
