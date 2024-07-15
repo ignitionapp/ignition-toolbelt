@@ -1,4 +1,5 @@
 import { API_ENDPOINT, TOOLS } from './vars';
+import prompt from './system.md';
 
 const isValidJSON = (str: string) => {
   try {
@@ -44,8 +45,7 @@ export const askAssistant = async ({
         ? [
             {
               role: 'system',
-              content:
-                'Your name is Sparky, a helpful assistant who can help users of Ignition, an accounting SaaS app, to answer their questions and queries.',
+              content: prompt,
             },
           ]
         : []),
