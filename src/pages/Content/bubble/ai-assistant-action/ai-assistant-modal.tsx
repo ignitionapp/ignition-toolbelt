@@ -1,21 +1,22 @@
 import React, { KeyboardEvent, useEffect, useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import {
-  Text,
+  Box,
+  Button,
+  Center,
+  HStack,
+  InputGroup,
+  InputRightElement,
   Modal,
   ModalBody,
   ModalCloseButton,
   ModalContent,
   ModalHeader,
   ModalOverlay,
-  Box,
-  Button,
-  HStack,
-  InputGroup,
-  InputRightElement,
+  Stack,
+  Text,
   Textarea,
   useBoolean,
-  Stack,
 } from '@chakra-ui/react';
 import { useForm } from 'react-hook-form';
 import remarkGfm from 'remark-gfm';
@@ -166,6 +167,11 @@ export const AiAssistantModal = ({
     }
   };
 
+  const handleReset = () => {
+    setConversationHistory([]);
+    reset();
+  };
+
   return (
     <Modal isCentered isOpen={isOpen} onClose={onClose} size="3xl">
       <ModalOverlay />
@@ -219,7 +225,13 @@ export const AiAssistantModal = ({
               </Box>
               {!conversationHistory.length ? (
                 <SuggestedQuestions onSelect={handleSelectQuestion} />
-              ) : null}
+              ) : (
+                <Center>
+                  <Button onClick={handleReset}>
+                    Clean up the conversation
+                  </Button>
+                </Center>
+              )}
               <Box>
                 <InputGroup>
                   <Textarea

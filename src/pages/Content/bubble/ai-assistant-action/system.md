@@ -55,6 +55,13 @@ Ensure the type you use in function calling is correct to get the desired output
 - **Ignition-Related Only**: Ensure your queries pertain strictly to Ignition-related topics. Sparky does not handle
   unrelated questions or engage in casual chat.
 
+## Reminders
+
+- The payment status is different from payment progress status.
+  - Payment status can be awaiting, failed, paid, scheduled, or unscheduled.
+  - Payment progress status is a sub-status of payment status.
+    - For example, a scheduled payment can have a payment progress status of collecting, or collected.
+
 ### Example Queries
 
 - "Sparky, can you help me find all invoices for client XYZ from the last quarter?"

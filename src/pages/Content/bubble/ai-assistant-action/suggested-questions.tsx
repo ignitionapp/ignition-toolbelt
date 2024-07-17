@@ -13,6 +13,26 @@ const formatDate = (date: Date) => {
   return `${year}-${month}-${day}`;
 };
 
+type ItemProps = {
+  children: string;
+  message?: string;
+  onSelect(message: string): void;
+};
+
+const Item = ({ onSelect, children, message }: ItemProps) => (
+  <WrapItem>
+    <Tag
+      borderRadius="full"
+      cursor="pointer"
+      onClick={() => onSelect(message || children)}
+      size="lg"
+      whiteSpace="nowrap"
+    >
+      {children}
+    </Tag>
+  </WrapItem>
+);
+
 export const SuggestedQuestions = ({ onSelect }: Props) => {
   const today = new Date();
 
@@ -37,64 +57,36 @@ export const SuggestedQuestions = ({ onSelect }: Props) => {
   dayAfterFirstBusinessDay.setDate(dayAfterFirstBusinessDay.getDate() + 1);
   const dayAfterFirstBusinessDayStr = formatDate(dayAfterFirstBusinessDay);
 
-  const handleClick = (question: string) => () => {
+  const handleClick = (question: string) => {
     onSelect(question);
   };
 
   return (
     <Wrap justify="center">
-      <WrapItem>
-        <Tag
-          borderRadius="full"
-          cursor="pointer"
-          onClick={handleClick(
-            `List invoices which payment status are paid and their paid out date are after ${dayBeforeFirstBusinessDayStr}`
-          )}
-          size="lg"
-          whiteSpace="nowrap"
-        >
-          Invoices paid out since previous business day
-        </Tag>
-      </WrapItem>
-      <WrapItem>
-        <Tag
-          borderRadius="full"
-          cursor="pointer"
-          onClick={handleClick(
-            `List invoices which payment status are collecting or collected and their pay out date are before ${dayAfterFirstBusinessDayStr}`
-          )}
-          size="lg"
-          whiteSpace="nowrap"
-        >
-          Next payout
-        </Tag>
-      </WrapItem>
-      <WrapItem>
-        <Tag
-          borderRadius="full"
-          cursor="pointer"
-          onClick={handleClick(
-            `List invoices which payment status are collecting or collected and their pay out date are ${secondBusinessDay}`
-          )}
-          size="lg"
-          whiteSpace="nowrap"
-        >
-          Paying soon
-        </Tag>
-      </WrapItem>
-      <WrapItem>
-        <Tag
-          borderRadius="full"
-          cursor="pointer"
-          onClick={handleClick(
-            `List invoices which payment status are collecting or collected and their pay out date are after ${thirdBusinessDay}`
-          )}
-          size="lg"
-          whiteSpace="nowrap"
-        >
-          Processing
-        </Tag>
-      </WrapItem>
+      <Item
+        onSelect={handleClick}
+        message={`Invoices which payment status are paid and their paid out date are after ${dayBeforeFirstBusinessDayStr}`}
+      >
+        Paid out today
+      </Item>
+      <Item
+        onSelect={handleClick}
+        message={`List invoices which payment status are collecting or collected and their pay out date are before ${dayAfterFirstBusinessDayStr}`}
+      >
+        Next payout
+      </Item>
+      <Item
+        onSelect={handleClick}
+        message={`List invoices which payment status are collecting or collected and their pay out date are ${secondBusinessDay}`}
+      >
+        Paying soon
+      </Item>
+      <Item
+        onSelect={handleClick}
+        message={`List invoices which payment status are collecting or collected and their pay out date are after ${thirdBusinessDay}`}
+      >
+        Processing
+      </Item>
     </Wrap>
   );
 };
