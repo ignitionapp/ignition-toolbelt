@@ -6,6 +6,7 @@ import {
   SearchSortDirection,
   SearchType,
 } from '@generated/ignition/types';
+import { Tool } from './types';
 
 const numberFilterConditions = Object.values(SearchNumberFilterCondition);
 const dateFilterConditions = Object.values(SearchDateFilterCondition);
@@ -14,9 +15,7 @@ const invoicePaymentProgressStatuses = Object.values(
   SearchInvoicePaymentProgressStatusType
 );
 
-export const API_ENDPOINT = 'https://api.openai.com/v1/chat/completions';
-
-export const APP_CLIENTS_FUNCTION = {
+export const APP_CLIENTS_FUNCTION: Tool = {
   type: 'function',
   function: {
     name: 'searchAppClients',
@@ -35,7 +34,7 @@ export const APP_CLIENTS_FUNCTION = {
   },
 };
 
-export const BILLING_ITEMS_FUNCTION = {
+export const BILLING_ITEMS_FUNCTION: Tool = {
   type: 'function',
   function: {
     name: 'searchBillingItems',
@@ -54,7 +53,7 @@ export const BILLING_ITEMS_FUNCTION = {
   },
 };
 
-export const CLIENT_FUNCTION = {
+export const CLIENT_FUNCTION: Tool = {
   type: 'function',
   function: {
     name: 'searchClients',
@@ -73,7 +72,7 @@ export const CLIENT_FUNCTION = {
   },
 };
 
-export const PROPOSAL_FUNCTION = {
+export const PROPOSAL_FUNCTION: Tool = {
   type: 'function',
   function: {
     name: 'searchProposals',
@@ -92,7 +91,7 @@ export const PROPOSAL_FUNCTION = {
   },
 };
 
-export const INVOICE_FUNCTION = {
+export const INVOICE_FUNCTION: Tool = {
   type: 'function',
   function: {
     name: 'searchInvoices',
@@ -191,7 +190,7 @@ export const INVOICE_FUNCTION = {
     },
   },
 };
-export const TOOLS = [
+export const TOOLS: Tool[] = [
   APP_CLIENTS_FUNCTION,
   BILLING_ITEMS_FUNCTION,
   CLIENT_FUNCTION,

@@ -21,6 +21,7 @@ import { AI_ASSISTANT } from '../../lib';
 import { askAssistant } from './utils';
 import { HtmlContent } from './html-content';
 import { useApi } from './use-api';
+import { HistoryItem } from './types';
 
 type FormValues = {
   userMessage: string;
@@ -33,7 +34,7 @@ export const AiAssistantModal = ({
   isOpen: boolean;
   onClose(): void;
 }) => {
-  const [isProcessing, setProcesing] = useBoolean();
+  const [isProcessing, setProcessing] = useBoolean();
   const {
     searchAppClients,
     searchBillingItems,
@@ -49,9 +50,9 @@ export const AiAssistantModal = ({
     },
   });
 
-  const [conversationHistory, setConversationHistory] = useState<
-    { sender: string; message: string }[]
-  >([]);
+  const [conversationHistory, setConversationHistory] = useState<HistoryItem[]>(
+    []
+  );
 
   useEffect(() => {
     chrome.storage.local.get([AI_ASSISTANT]).then((results) => {
@@ -65,7 +66,7 @@ export const AiAssistantModal = ({
   const handleInitConversation = () => {
     setConversationHistory((prevHistory) => [
       ...prevHistory,
-      { sender: 'assistant', message: '' },
+      { sender: 'assistant', name: 'Sparky', message: '' },
     ]);
   };
 
@@ -104,8 +105,8 @@ export const AiAssistantModal = ({
   const handleSave = async ({ userMessage }: FormValues) => {
     if (isProcessing || userMessage.trim() === '') return;
 
-    const newMessage = { sender: 'user', message: userMessage };
-    setConversationHistory((prevHistory) => [...prevHistory, newMessage]);
+    const history: HistoryItem = { sender: 'user', message: userMessage };
+    setConversationHistory((prevHistory) => [...prevHistory, history]);
     const conversationEl = conversationRef.current;
     if (conversationEl) {
       conversationEl.scrollTop = conversationEl.scrollHeight;
@@ -114,7 +115,7 @@ export const AiAssistantModal = ({
     try {
       const result = await chrome.storage.local.get([AI_ASSISTANT]);
       const { token } = result[AI_ASSISTANT] || {};
-      setProcesing.on();
+      setProcessing.on();
       await askAssistant({
         messageContent: userMessage,
         messageRole: 'user',
@@ -131,11 +132,12 @@ export const AiAssistantModal = ({
         },
       });
       reset({ userMessage: '' });
-      setProcesing.off();
+      setProcessing.off();
     } catch (error) {
       console.error('Error calling OpenAI API:', error);
-      const errorMessage = {
+      const errorMessage: HistoryItem = {
         sender: 'assistant',
+        name: 'Sparky',
         message: 'Error fetching response from API.',
       };
       setConversationHistory((prevHistory) => [...prevHistory, errorMessage]);
@@ -167,20 +169,20 @@ export const AiAssistantModal = ({
           >
             <Box width="100%" flexShrink="1" flexGrow="1" height="0">
               <Box overflowY="scroll" ref={conversationRef} height="100%">
-                {conversationHistory.map((entry, index) => (
+                {conversationHistory.map((history, index) => (
                   <Box key={index} mb={4}>
                     <HStack
                       alignItems="flex-start"
                       justifyContent={
-                        entry.sender === 'user' ? 'flex-end' : 'flex-start'
+                        history.sender === 'user' ? 'flex-end' : 'flex-start'
                       }
                     >
                       <Box fontWeight="bold" py="medium">
-                        {entry.sender === 'user' ? 'You' : 'Sparky'}:
+                        {history.sender === 'user' ? 'You' : 'Sparky'}:
                       </Box>
                       <Box
                         backgroundColor={
-                          entry.sender === 'user' ? 'blue.50' : 'gray.50'
+                          history.sender === 'user' ? 'blue.50' : 'gray.50'
                         }
                         borderRadius="md"
                         p="medium"
@@ -188,7 +190,7 @@ export const AiAssistantModal = ({
                         maxWidth="70%"
                       >
                         <HtmlContent sx={{ p: { _last: { mb: 0 } } }}>
-                          <ReactMarkdown>{entry.message}</ReactMarkdown>
+                          <ReactMarkdown>{history.message}</ReactMarkdown>
                         </HtmlContent>
                       </Box>
                     </HStack>

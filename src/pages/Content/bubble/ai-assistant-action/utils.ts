@@ -1,5 +1,9 @@
-import { API_ENDPOINT, TOOLS } from './vars';
+import OpenAI from 'openai';
+import { Stream } from 'openai/streaming';
+
 import prompt from './system.md';
+import { HistoryItem, Role, Tool, Message } from './types';
+import { TOOLS } from './vars';
 
 const isValidJSON = (str: string) => {
   try {
@@ -11,22 +15,22 @@ const isValidJSON = (str: string) => {
 };
 
 type Args = {
-  messageRole?: 'user' | 'assistant' | 'function';
-  messageContent: string;
+  messageRole?: Role;
+  messageContent: string | null;
   messageName?: string;
   token: string;
-  history: {
-    sender: string;
-    message: string;
-  }[];
+  history: HistoryItem[];
   isFunctionCall?: boolean;
+  tools?: Tool[];
   onInit: () => void;
   onUpdate: (assistantMessage: string) => void;
   onCallFunction: (
     functionName: string,
-    parameters: { [key: string]: string }
+    parameters: Record<string, unknown>
   ) => Promise<any>;
 };
+
+let openai: OpenAI | null = null;
 
 export const askAssistant = async ({
   messageRole = 'user',
@@ -38,125 +42,101 @@ export const askAssistant = async ({
   onInit,
   onUpdate,
   onCallFunction,
-}: Args) => {
+}: Args): Promise<
+  | void
+  | (OpenAI.Chat.Completions.ChatCompletion &
+      Stream<OpenAI.Chat.Completions.ChatCompletionChunk>)
+> => {
   try {
-    const messages = [
-      ...(history.length === 0
-        ? [
-            {
-              role: 'system',
-              content: prompt,
-            },
-          ]
-        : []),
-      ...history.map((h) => ({ role: h.sender, content: h.message })),
+    const previousMessages: Message[] = history.map((h) => ({
+      role: h.sender,
+      content: h.message,
+      ...(h.name && { name: h.name }),
+    }));
+
+    const messages: Message[] = [
+      {
+        role: 'system',
+        content: prompt,
+      },
+      ...previousMessages,
       {
         role: messageRole,
-        name: messageName,
+        ...(messageName && { name: messageName }),
         content: messageContent,
       },
     ];
 
-    const response = await fetch(API_ENDPOINT, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-4-1106-preview',
-        messages,
-        tools: isFunctionCall ? TOOLS : undefined,
-        tool_choice: isFunctionCall ? 'auto' : undefined,
-        temperature: 0,
-        stream: true,
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error('Network response was not ok');
+    if (!openai) {
+      openai = new OpenAI({
+        apiKey: token,
+        dangerouslyAllowBrowser: true,
+      });
     }
 
-    const reader = response.body?.getReader();
-    const decoder = new TextDecoder();
-    if (!reader) return;
+    const stream = await openai.chat.completions.create({
+      model: 'gpt-4-1106-preview',
+      messages: messages as OpenAI.ChatCompletionMessageParam[],
+      tools: isFunctionCall ? TOOLS : undefined,
+      tool_choice: isFunctionCall ? 'auto' : undefined,
+      temperature: 0,
+      stream: true,
+    });
 
     onInit();
 
     let assistantMessage = '';
-    let functionArguments = '';
     let functionName = '';
-    while (true) {
-      const { done, value } = (await reader?.read()) || {};
-      if (done) break;
-      const chunk = decoder.decode(value);
-      const lines = chunk
-        .toString()
-        .split('\n')
-        .filter((line) => line.trim() !== '');
+    let functionArguments = '';
 
-      for (const line of lines) {
-        const message = line.replace(/^data: /, '');
-        if (message === '[DONE]') {
-          break;
-        }
-        try {
-          const parsed = JSON.parse(message);
-          const currentMessage = parsed.choices[0].delta.content;
-          const toolCalls = parsed.choices[0].delta.tool_calls;
-          if (currentMessage) {
-            assistantMessage += currentMessage;
-          } else if (toolCalls) {
-            const toolCall = toolCalls[0].function;
-            if (toolCall.name) {
-              functionName = toolCall.name;
-            }
-            if (toolCall.arguments) {
-              functionArguments += toolCall.arguments;
-            }
-          }
-        } catch (error) {
-          console.error('Could not JSON parse stream message', message, error);
-        }
+    for await (const chunk of stream) {
+      if (chunk.choices[0].delta.content) {
+        assistantMessage += chunk.choices[0].delta.content;
+        onUpdate(assistantMessage);
       }
 
-      if (
-        messageRole !== 'function' &&
-        functionName &&
-        isValidJSON(functionArguments)
-      ) {
-        onUpdate('Yes, I can help with that. One moment...');
-        const parameters = JSON.parse(functionArguments);
-
-        console.info(
-          `[DEBUG] Function calling: ${functionName}(${JSON.stringify(
-            parameters
-          )})`
-        );
-
-        const functionResult = await onCallFunction(functionName, parameters);
-
-        await askAssistant({
-          messageRole: 'function',
-          messageName: functionName,
-          messageContent: JSON.stringify(functionResult),
-          token,
-          history: messages.map(({ role, content }) => ({
-            sender: role,
-            message: content,
-          })),
-          isFunctionCall: false,
-          onInit,
-          onUpdate,
-          onCallFunction,
-        });
-
-        functionName = '';
-        functionArguments = '';
-        return;
+      if (chunk.choices[0].delta.tool_calls) {
+        const toolCall = chunk.choices[0].delta.tool_calls[0].function;
+        if (toolCall?.name) {
+          functionName = toolCall.name;
+        }
+        if (toolCall?.arguments) {
+          functionArguments += toolCall.arguments;
+        }
       }
+    }
 
-      onUpdate(assistantMessage);
+    if (
+      messageRole !== 'function' &&
+      functionName &&
+      isValidJSON(functionArguments)
+    ) {
+      onUpdate('Yes, I can help with that. One moment...');
+      const parameters = JSON.parse(functionArguments);
+
+      console.info(
+        `[DEBUG] Function calling: ${functionName}(${JSON.stringify(
+          parameters
+        )})`
+      );
+
+      const functionResult = await onCallFunction(functionName, parameters);
+
+      return askAssistant({
+        messageRole: 'function',
+        messageName: functionName,
+        messageContent: JSON.stringify(functionResult),
+        token,
+        history: messages.map(({ role, name, content }) => ({
+          sender: role,
+          name,
+          message: content,
+        })),
+        isFunctionCall: false,
+        onInit,
+        onUpdate,
+        onCallFunction,
+      });
     }
   } catch (error) {
     console.error('Error calling OpenAI API:', error);

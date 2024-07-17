@@ -110,6 +110,7 @@ export const Bubble = ({
             <Header csrfToken={csrfToken} />
             <MenuDivider />
             <MenuItem
+              as="a"
               icon={<FontAwesomeIcon fixedWidth icon={faScrewdriverWrench} />}
               onClick={handleClickMissionControl}
             >
