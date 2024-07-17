@@ -54,10 +54,15 @@ export const askAssistant = async ({
       ...(h.name && { name: h.name }),
     }));
 
+    const today = new Date();
     const messages: Message[] = [
       {
         role: 'system',
         content: prompt,
+      },
+      {
+        role: 'system',
+        content: `Today is ${today.toDateString()}`,
       },
       ...previousMessages,
       {

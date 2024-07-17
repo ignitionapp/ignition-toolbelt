@@ -737,3 +737,78 @@ export type SearchInvoicesQueryResult = Apollo.QueryResult<
   Types.SearchInvoicesQuery,
   Types.SearchInvoicesQueryVariables
 >;
+export const UpcomingBusinessDaysDocument = gql`
+  query upcomingBusinessDays($startDate: Date!) {
+    upcomingBusinessDays(count: 3, startDate: $startDate)
+  }
+`;
+
+/**
+ * __useUpcomingBusinessDaysQuery__
+ *
+ * To run a query within a React component, call `useUpcomingBusinessDaysQuery` and pass it any options that fit your needs.
+ * When your component renders, `useUpcomingBusinessDaysQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useUpcomingBusinessDaysQuery({
+ *   variables: {
+ *      startDate: // value for 'startDate'
+ *   },
+ * });
+ */
+export function useUpcomingBusinessDaysQuery(
+  baseOptions: Apollo.QueryHookOptions<
+    Types.UpcomingBusinessDaysQuery,
+    Types.UpcomingBusinessDaysQueryVariables
+  > &
+    (
+      | { variables: Types.UpcomingBusinessDaysQueryVariables; skip?: boolean }
+      | { skip: boolean }
+    )
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<
+    Types.UpcomingBusinessDaysQuery,
+    Types.UpcomingBusinessDaysQueryVariables
+  >(UpcomingBusinessDaysDocument, options);
+}
+export function useUpcomingBusinessDaysLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    Types.UpcomingBusinessDaysQuery,
+    Types.UpcomingBusinessDaysQueryVariables
+  >
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<
+    Types.UpcomingBusinessDaysQuery,
+    Types.UpcomingBusinessDaysQueryVariables
+  >(UpcomingBusinessDaysDocument, options);
+}
+export function useUpcomingBusinessDaysSuspenseQuery(
+  baseOptions?: Apollo.SuspenseQueryHookOptions<
+    Types.UpcomingBusinessDaysQuery,
+    Types.UpcomingBusinessDaysQueryVariables
+  >
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useSuspenseQuery<
+    Types.UpcomingBusinessDaysQuery,
+    Types.UpcomingBusinessDaysQueryVariables
+  >(UpcomingBusinessDaysDocument, options);
+}
+export type UpcomingBusinessDaysQueryHookResult = ReturnType<
+  typeof useUpcomingBusinessDaysQuery
+>;
+export type UpcomingBusinessDaysLazyQueryHookResult = ReturnType<
+  typeof useUpcomingBusinessDaysLazyQuery
+>;
+export type UpcomingBusinessDaysSuspenseQueryHookResult = ReturnType<
+  typeof useUpcomingBusinessDaysSuspenseQuery
+>;
+export type UpcomingBusinessDaysQueryResult = Apollo.QueryResult<
+  Types.UpcomingBusinessDaysQuery,
+  Types.UpcomingBusinessDaysQueryVariables
+>;
