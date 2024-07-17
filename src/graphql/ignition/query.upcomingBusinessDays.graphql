@@ -1,0 +1,3 @@
+query upcomingBusinessDays($startDate: Date!) {
+  upcomingBusinessDays(count: 3, startDate: $startDate)
+}

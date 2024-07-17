@@ -135,9 +135,9 @@ export const INVOICE_FUNCTION: Tool = {
           type: 'array',
           items: {
             type: 'string',
+            enum: invoicePaymentProgressStatuses,
           },
           description: 'The payment progress statuses to filter by.',
-          enum: invoicePaymentProgressStatuses,
         },
         paymentStatus: {
           type: 'string',

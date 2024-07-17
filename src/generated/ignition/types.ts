@@ -18355,3 +18355,12 @@ export type SearchInvoicesQuery = {
     };
   };
 };
+
+export type UpcomingBusinessDaysQueryVariables = Exact<{
+  startDate: Scalars['Date']['input'];
+}>;
+
+export type UpcomingBusinessDaysQuery = {
+  __typename: 'Query';
+  upcomingBusinessDays: Array<any>;
+};

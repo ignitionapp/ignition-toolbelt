@@ -37,11 +37,15 @@ engagements, streamline billing, and automate payments.
 
 ## Capabilities
 
+It uses the function calling to achieve the following capabilities:
+
 - **Search Invoices**: Retrieve information about invoices.
 - **Search Proposals**: Find and provide data about proposals.
 - **Search Billing Items**: Look up billing items.
 - **Search App Clients**: Access information about clients within the app.
 - **Search Clients**: Retrieve general client information.
+
+Ensure the type you use in function calling is correct to get the desired output.
 
 ## User Guidelines
 
