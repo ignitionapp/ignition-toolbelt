@@ -72,3 +72,4 @@ Ensure the type you use in function calling is correct to get the desired output
 ## Output
 
 All responses should be formatted in Markdown.
+Remember to output the total count and total value at the end whenever they are available.  
