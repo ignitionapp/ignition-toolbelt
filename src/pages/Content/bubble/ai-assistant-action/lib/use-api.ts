@@ -99,6 +99,9 @@ export const useApi = () => {
   }: SearchInvoicesArgs = {}) => {
     try {
       const { data } = await runSearchInvoices({
+        context: {
+          addTypename: false,
+        },
         variables: {
           sort: {
             attribute: sortAttribute,

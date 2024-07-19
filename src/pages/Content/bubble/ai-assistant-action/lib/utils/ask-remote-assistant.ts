@@ -1,9 +1,9 @@
 import OpenAI from 'openai';
 import { Stream } from 'openai/streaming';
 
-import prompt from './system.md';
-import { HistoryItem, Role, Tool, Message } from './types';
-import { TOOLS } from './vars';
+import prompt from '../system.md';
+import { HistoryItem, Role, Tool, Message } from '../types';
+import { TOOLS } from '../vars';
 
 const isValidJSON = (str: string) => {
   try {
@@ -32,7 +32,7 @@ type Args = {
 
 let openai: OpenAI | null = null;
 
-export const askAssistant = async ({
+export const askRemoteAssistant = async ({
   messageRole = 'user',
   messageName,
   messageContent,
@@ -80,7 +80,7 @@ export const askAssistant = async ({
     }
 
     const stream = await openai.chat.completions.create({
-      model: 'gpt-4-1106-preview',
+      model: 'gpt-4o-mini-2024-07-18',
       messages: messages as OpenAI.ChatCompletionMessageParam[],
       tools: isFunctionCall ? TOOLS : undefined,
       tool_choice: isFunctionCall ? 'auto' : undefined,
@@ -127,7 +127,7 @@ export const askAssistant = async ({
 
       const functionResult = await onCallFunction(functionName, parameters);
 
-      return askAssistant({
+      return askRemoteAssistant({
         messageRole: 'function',
         messageName: functionName,
         messageContent: JSON.stringify(functionResult),

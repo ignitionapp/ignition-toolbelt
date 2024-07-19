@@ -65,25 +65,25 @@ export const SuggestedQuestions = ({ onSelect }: Props) => {
     <Wrap justify="center">
       <Item
         onSelect={handleClick}
-        message={`Invoices which payment status are paid and their paid out date are after ${dayBeforeFirstBusinessDayStr}`}
+        message={`Invoices which payment progress status are paid and their paid out date are after ${dayBeforeFirstBusinessDayStr}`}
       >
         Paid out today
       </Item>
       <Item
         onSelect={handleClick}
-        message={`List invoices which payment status are collecting or collected and their pay out date are before ${dayAfterFirstBusinessDayStr}`}
+        message={`List invoices which payment progress status are collecting or collected and their pay out date are before ${dayAfterFirstBusinessDayStr}`}
       >
         Next payout
       </Item>
       <Item
         onSelect={handleClick}
-        message={`List invoices which payment status are collecting or collected and their pay out date are ${secondBusinessDay}`}
+        message={`List invoices which payment progress status are collecting or collected and their pay out date are ${secondBusinessDay}`}
       >
         Paying soon
       </Item>
       <Item
         onSelect={handleClick}
-        message={`List invoices which payment status are collecting or collected and their pay out date are after ${thirdBusinessDay}`}
+        message={`List invoices which payment progress status are collecting or collected and their pay out date are after ${thirdBusinessDay}`}
       >
         Processing
       </Item>

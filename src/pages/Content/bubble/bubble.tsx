@@ -179,14 +179,12 @@ export const Bubble = ({
                 Create new account
               </MenuItem>
             ) : null}
-            {!isProductionEnv ? (
-              <AiAssistantAction
-                icon={<FontAwesomeIcon fixedWidth icon={faRobot} />}
-                as={MenuItem}
-              >
-                AI Assistant
-              </AiAssistantAction>
-            ) : null}
+            <AiAssistantAction
+              icon={<FontAwesomeIcon fixedWidth icon={faRobot} />}
+              as={MenuItem}
+            >
+              AI Assistant
+            </AiAssistantAction>
             <MenuItem
               icon={<FontAwesomeIcon fixedWidth icon={faGear} />}
               onClick={onPanelClick}

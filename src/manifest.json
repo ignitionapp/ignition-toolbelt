@@ -51,6 +51,7 @@
   "web_accessible_resources": [
     {
       "resources": [
+        "llm-worker.js",
         "content.styles.css",
         "icon-128.png",
         "icon-34.png"
@@ -59,5 +60,9 @@
         "<all_urls>"
       ]
     }
-  ]
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'",
+    "content_scripts": "script-src 'self'; object-src 'self'"
+  }
 }

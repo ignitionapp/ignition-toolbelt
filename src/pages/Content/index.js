@@ -13,6 +13,7 @@ import { setSignupAutofill } from './modules/set-signup-autofill';
 import { setStripeConnectAutofill } from './modules/set-stripe-connect-autofill';
 import { setSubscriptionAutofill } from './modules/set-subscription-autofill';
 import { setGithubAutofill } from './modules/set-github-autofill';
+import { setLocalAIAssistant } from './modules/set-local-ai-assistant';
 
 window.addEventListener('load', async () => {
   await setComicSans();
@@ -25,6 +26,7 @@ window.addEventListener('load', async () => {
   await setPaymentSetupAutofill();
   await setStripeConnectAutofill();
   await setGithubAutofill();
+  await setLocalAIAssistant();
 });
 
 chrome.runtime.onMessage.addListener(async ({ type }) => {

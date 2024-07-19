@@ -14,6 +14,7 @@ import {
   ModalHeader,
   ModalOverlay,
   Stack,
+  Spinner,
   Text,
   Textarea,
   useBoolean,
@@ -22,15 +23,23 @@ import { useForm } from 'react-hook-form';
 import remarkGfm from 'remark-gfm';
 
 import { AI_ASSISTANT } from '../../lib';
-import { askAssistant } from './utils';
+import {
+  askLocalAssistant,
+  askRemoteAssistant,
+  ProgressType,
+  useApi,
+} from './lib';
+import type { HistoryItem } from './lib';
 import { HtmlContent } from './html-content';
-import { useApi } from './use-api';
 import { SuggestedQuestions } from './suggested-questions';
-import { HistoryItem } from './types';
+import { getEnvByUrl } from '../../../Popup/utils';
+import { ProgressBar } from './lib/elements/progress-bar';
 
 type FormValues = {
   userMessage: string;
 };
+
+const isProduction = getEnvByUrl(window.location.href) === 'production';
 
 export const AiAssistantModal = ({
   isOpen,
@@ -48,6 +57,10 @@ export const AiAssistantModal = ({
     searchProposals,
   } = useApi();
   const conversationRef = useRef<HTMLDivElement>(null);
+
+  const [progress, setProgress] = useState(0);
+  const [progressType, setProgressType] = useState<ProgressType>();
+  const [totalDownloadedMegaBytes, setTotalDownloadedMegaBytes] = useState(0);
 
   const { setValue, handleSubmit, register, reset } = useForm<FormValues>({
     defaultValues: {
@@ -97,7 +110,6 @@ export const AiAssistantModal = ({
         sender: 'assistant',
         message,
       };
-
       return updatedHistory;
     });
 
@@ -110,6 +122,17 @@ export const AiAssistantModal = ({
   const handleSelectQuestion = (question: string) => {
     setValue('userMessage', question);
     handleSubmit(handleSave)();
+  };
+
+  const handleLoading = (progress: number) => {
+    setProgressType(ProgressType.LOADING);
+    setProgress(progress);
+  };
+
+  const handleDownloading = (progress: number, totalMegaBytes: number) => {
+    setProgressType(ProgressType.DOWNLOADING);
+    setProgress(progress);
+    setTotalDownloadedMegaBytes(totalMegaBytes);
   };
 
   const handleSave = async ({ userMessage }: FormValues) => {
@@ -131,16 +154,23 @@ export const AiAssistantModal = ({
     try {
       const result = await chrome.storage.local.get([AI_ASSISTANT]);
       const { token } = result[AI_ASSISTANT] || {};
+      const askAssistant = isProduction
+        ? askLocalAssistant
+        : askRemoteAssistant;
+
       setProcessing.on();
       await askAssistant({
         messageContent: userMessage,
         messageRole: 'user',
-        token,
         history: conversationHistory,
+        token,
         onInit: handleInitConversation,
+        onDownloading: handleDownloading,
+        onLoading: handleLoading,
         onUpdate: handleUpdateConversation,
         onCallFunction: handleCallFunction,
       });
+
       chrome.storage.local.set({
         [AI_ASSISTANT]: {
           userMessage,
@@ -148,16 +178,20 @@ export const AiAssistantModal = ({
         },
       });
       reset({ userMessage: '' });
-      setProcessing.off();
-    } catch (error) {
-      console.error('Error calling OpenAI API:', error);
-      setConversationHistory((prevHistory) => [
-        ...prevHistory,
-        {
+    } catch (error: unknown) {
+      setConversationHistory((prevHistory) => {
+        const updatedHistory = [...prevHistory];
+        updatedHistory[updatedHistory.length - 1] = {
           sender: 'assistant',
-          message: 'Error fetching response from API.',
-        },
-      ]);
+          message:
+            error instanceof Error
+              ? error.message
+              : 'Oops, something goes wrong. Please reload the page to try again',
+        };
+        return updatedHistory;
+      });
+    } finally {
+      setProcessing.off();
     }
   };
 
@@ -171,6 +205,8 @@ export const AiAssistantModal = ({
     setConversationHistory([]);
     reset();
   };
+
+  const isLoading = progress !== 100 && progress !== 0;
 
   return (
     <Modal isCentered isOpen={isOpen} onClose={onClose} size="3xl">
@@ -217,10 +253,31 @@ export const AiAssistantModal = ({
                               {history.message}
                             </ReactMarkdown>
                           </HtmlContent>
+                          {index === conversationHistory.length - 1 &&
+                          history.message === '' &&
+                          isProcessing &&
+                          !isLoading ? (
+                            <HStack>
+                              <Spinner color="red.500" />
+                              <Text>Assistant is thinking...</Text>
+                            </HStack>
+                          ) : null}
                         </Box>
                       </HStack>
                     </Box>
                   ))}
+
+                  {isLoading && (
+                    <ProgressBar
+                      message={
+                        progressType === ProgressType.LOADING
+                          ? 'Initializing the assistant...'
+                          : `Downloading the assistant (${totalDownloadedMegaBytes} MB downloaded) ...`
+                      }
+                      progress={progress}
+                      progressType={progressType}
+                    />
+                  )}
                 </Box>
               </Box>
               {!conversationHistory.length ? (
@@ -236,7 +293,7 @@ export const AiAssistantModal = ({
                 <InputGroup>
                   <Textarea
                     isDisabled={isProcessing}
-                    pr="5rem"
+                    pr="6.5rem"
                     height="4.5rem"
                     minHeight="4.5rem"
                     placeholder="Your message..."

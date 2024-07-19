@@ -7,6 +7,7 @@ import './set-jira-mission-control-login';
 import './set-npe-exit';
 import './set-comic-sans';
 import './set-github-autofill';
+import './set-local-ai-assistant';
 
 // Onboarding autofill
 import './set-initial-faker-seed-value';
