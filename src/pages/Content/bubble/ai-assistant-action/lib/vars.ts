@@ -197,3 +197,8 @@ export const TOOLS: Tool[] = [
   INVOICE_FUNCTION,
   PROPOSAL_FUNCTION,
 ];
+
+export enum ProgressType {
+  LOADING = 'loading',
+  DOWNLOADING = 'downloading',
+}

@@ -14522,6 +14522,13 @@ export enum SearchNumberFilterCondition {
   EQUALS = 'EQUALS',
 }
 
+export type SearchQuery = {
+  __typename: 'SearchQuery';
+  results: ResultConnection;
+  totalCount: Scalars['Int']['output'];
+  totalValue?: Maybe<Money>;
+};
+
 export type SearchQueryResultsArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   before?: InputMaybe<Scalars['String']['input']>;
