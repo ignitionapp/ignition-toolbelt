@@ -7,8 +7,8 @@ const FILTERS = {
       ports: [3000],
     },
     {
-      hostSuffix: '.ignitionapp.com'
-    }
+      hostSuffix: '.ignitionapp.com',
+    },
   ],
 };
 
@@ -20,7 +20,7 @@ const handleLoadPage = async ({
   url: string;
 }) => {
   const excludedPathRegex =
-    /\/(sign-in|sign-up|console|graphiql|welcome|client-portal)/;
+    /\/(sign-in|sign-up|console|graphiql|welcome|client-portal|dist)/;
   const urlScheme = new URL(url);
   if (!excludedPathRegex.test(urlScheme.pathname)) {
     chrome.tabs.sendMessage(tabId, { type: 'set-bubble-activation' });
