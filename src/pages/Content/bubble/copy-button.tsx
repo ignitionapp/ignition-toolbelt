@@ -10,7 +10,7 @@ type Props = ButtonProps & {
 
 export const CopyButton = React.forwardRef(
   (props: Props, ref: React.ForwardedRef<HTMLButtonElement>) => {
-    const { value, ...rest } = props;
+    const { isDisabled, value, ...rest } = props;
     const { hasCopied, onCopy } = useClipboard(value);
 
     const handleClick = (e: React.MouseEvent) => {
@@ -24,7 +24,7 @@ export const CopyButton = React.forwardRef(
         size="xs"
         onClick={handleClick}
         ref={ref}
-        _hover={{ color: 'blue.500' }}
+        _hover={{ color: isDisabled ? 'faint' : 'blue.500' }}
         sx={{ pointerEvents: 'auto !important' }}
         transition="all 0.5s"
         {...rest}
