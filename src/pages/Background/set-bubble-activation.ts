@@ -19,8 +19,7 @@ const handleLoadPage = async ({
   tabId: number;
   url: string;
 }) => {
-  const excludedPathRegex =
-    /\/(sign-in|sign-up|console|graphiql|welcome|client-portal|dist)/;
+  const excludedPathRegex = /\/(console|graphiql|client-portal|dist)/;
   const urlScheme = new URL(url);
   if (!excludedPathRegex.test(urlScheme.pathname)) {
     chrome.tabs.sendMessage(tabId, { type: 'set-bubble-activation' });

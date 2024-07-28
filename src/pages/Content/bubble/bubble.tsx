@@ -34,8 +34,8 @@ import { AboutModal } from './about-modal';
 import { CopyButton } from './copy-button';
 import { AiAssistantAction } from './ai-assistant-action';
 
-const isDevelopmentEnv = getEnvByUrl(window.location.href) === 'development';
-const isProductionEnv = getEnvByUrl(window.location.href) === 'production';
+const env = getEnvByUrl(window.location.href);
+const isDevApiAvailable = env === 'development' || env === 'sandbox';
 const iconUrl = chrome.runtime.getURL('icon-128.png');
 
 export const Bubble = ({
@@ -60,6 +60,8 @@ export const Bubble = ({
   const { data: consolePracticeData } = useConsolePractice({ id, csrfToken });
   const stripeDashboardUri =
     consolePracticeData?.practice.stripeIntegrationAccount?.dashboardUri;
+
+  const hasCurrentPracticeData = !!data;
 
   const handleClickMissionControl = (e: React.MouseEvent) => {
     const url = `${window.location.origin}/console/practice/${id}`;
@@ -107,24 +109,31 @@ export const Bubble = ({
             <Image src={iconUrl} width="18px" height="18px" draggable={false} />
           </MenuButton>
           <MenuList>
-            <Header csrfToken={csrfToken} />
-            <MenuDivider />
+            {hasCurrentPracticeData ? (
+              <>
+                <Header csrfToken={csrfToken} />
+                <MenuDivider />
+              </>
+            ) : null}
             <MenuItem
               as="a"
               icon={<FontAwesomeIcon fixedWidth icon={faScrewdriverWrench} />}
               onClick={handleClickMissionControl}
+              isDisabled={!hasCurrentPracticeData}
             >
               <Flex justifyContent="space-between">
                 <Text>Mission Control</Text>
                 <Tooltip
                   label="Copy Mission Control URL"
                   aria-label="Click to copy Mission Control URL"
+                  isDisabled={!hasCurrentPracticeData}
                   placement="right"
                   gutter={16}
                   shouldWrapChildren={true}
                 >
                   <CopyButton
                     value={`${window.location.origin}/console/practice/${id}`}
+                    isDisabled={!hasCurrentPracticeData}
                   />
                 </Tooltip>
               </Flex>
@@ -132,56 +141,61 @@ export const Bubble = ({
             <MenuItem
               icon={<FontAwesomeIcon fixedWidth icon={faFlag} />}
               onClick={onAcknowledgementClick}
+              isDisabled={!hasCurrentPracticeData}
             >
               Acknowledgements
             </MenuItem>
             <MenuItem
               icon={<FontAwesomeIcon fixedWidth icon={faTerminal} />}
               onClick={handleClickGraphiql}
+              isDisabled={!hasCurrentPracticeData}
             >
               GraphiQL
             </MenuItem>
-            {stripeDashboardUri ? (
-              <MenuItem
-                as="a"
-                href={stripeDashboardUri}
-                target="_blank"
-                // @ts-ignore
-                icon={<FontAwesomeIcon fixedWidth icon={faStripeS} />}
-              >
-                <Flex justifyContent="space-between">
-                  <HStack>
-                    <Text>Stripe dashboard</Text>
-                    <Text as="span" fontSize="xsmall">
-                      <FontAwesomeIcon
-                        fixedWidth
-                        icon={faArrowUpRightFromSquare}
-                      />
-                    </Text>
-                  </HStack>
-                  <Tooltip
-                    label="Copy Stripe Dashboard URL"
-                    aria-label="Click to Stripe Dashboard URL"
-                    placement="right"
-                    gutter={16}
-                    shouldWrapChildren={true}
-                  >
-                    <CopyButton value={stripeDashboardUri} />
-                  </Tooltip>
-                </Flex>
-              </MenuItem>
-            ) : null}
-            {isDevelopmentEnv ? (
-              <MenuItem
-                icon={<FontAwesomeIcon fixedWidth icon={faWandMagicSparkles} />}
-                onClick={onClickCreateNewAccount}
-              >
-                Create new account
-              </MenuItem>
-            ) : null}
+            <MenuItem
+              as="a"
+              href={stripeDashboardUri}
+              target="_blank"
+              // @ts-ignore
+              icon={<FontAwesomeIcon fixedWidth icon={faStripeS} />}
+              isDisabled={!stripeDashboardUri}
+            >
+              <Flex justifyContent="space-between">
+                <HStack>
+                  <Text>Stripe dashboard</Text>
+                  <Text as="span" fontSize="xsmall">
+                    <FontAwesomeIcon
+                      fixedWidth
+                      icon={faArrowUpRightFromSquare}
+                    />
+                  </Text>
+                </HStack>
+                <Tooltip
+                  label="Copy Stripe Dashboard URL"
+                  aria-label="Click to Stripe Dashboard URL"
+                  isDisabled={!stripeDashboardUri}
+                  placement="right"
+                  gutter={16}
+                  shouldWrapChildren={true}
+                >
+                  <CopyButton
+                    value={stripeDashboardUri}
+                    isDisabled={!stripeDashboardUri}
+                  />
+                </Tooltip>
+              </Flex>
+            </MenuItem>
+            <MenuItem
+              icon={<FontAwesomeIcon fixedWidth icon={faWandMagicSparkles} />}
+              onClick={onClickCreateNewAccount}
+              isDisabled={!isDevApiAvailable}
+            >
+              Create new account
+            </MenuItem>
             <AiAssistantAction
               icon={<FontAwesomeIcon fixedWidth icon={faRobot} />}
               as={MenuItem}
+              isDisabled={!hasCurrentPracticeData}
             >
               AI Assistant
             </AiAssistantAction>

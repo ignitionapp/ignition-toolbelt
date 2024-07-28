@@ -48,20 +48,24 @@ export const Header = ({ csrfToken }: { csrfToken: string }) => {
 
   return (
     <HStack px="small" spacing="small" alignItems="flex-start">
-      <Text
-        color="brand"
-        fontSize="large"
-        fontWeight="medium"
-        position="relative"
-        top="-3px"
-      >
-        {countryCode ? countryCodeToFlagEmoji(countryCode) : '🌍'}
-      </Text>
+      {name ? (
+        <Text
+          color="brand"
+          fontSize="large"
+          fontWeight="medium"
+          position="relative"
+          top="-3px"
+        >
+          {countryCode ? countryCodeToFlagEmoji(countryCode) : '🌍'}
+        </Text>
+      ) : null}
       <Stack spacing="xsmall">
         <HStack>
-          <Text fontWeight="medium">
-            {name} ({referenceNumber})
-          </Text>
+          {name ? (
+            <Text fontWeight="medium">
+              {name} ({referenceNumber})
+            </Text>
+          ) : null}
           {planName ? (
             <Text display="inline" color="gray.500" fontSize="xsmall">
               {planName}
