@@ -13,4 +13,5 @@ export type HistoryItem = {
   sender: Role;
   name?: string;
   message: string | null;
+  tool_call_id?: string;
 };

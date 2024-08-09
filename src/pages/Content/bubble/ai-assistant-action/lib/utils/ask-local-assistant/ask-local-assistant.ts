@@ -5,8 +5,10 @@ import prompt from '../../system.md';
 import { TOOLS } from '../../vars';
 import { AskLocalAssistantArgs, Message, OnInitializing } from './types';
 import type { ChatCompletionMessageParam } from '@mlc-ai/web-llm';
+import { manageConversationHistory } from './utils';
 
 const MODEL_ID = 'Hermes-2-Pro-Llama-3-8B-q4f16_1-MLC';
+const MAX_TOKENS = 4096
 
 let engine: MLCEngineInterface | null = null;
 
@@ -73,12 +75,15 @@ export const askLocalAssistant = async ({
       });
     }
 
+    console.log('history', history)
+    const managedHistory = await manageConversationHistory(history, messageContent, MAX_TOKENS, onLoading)
+    console.log('managedHistory', managedHistory)
     const messages: Message[] = [
       {
-        role: 'user',
+        role: 'system',
         content: `${prompt}\n\n Today is ${new Date().toDateString()}`,
       },
-      ...history.map(({ sender, message, name, tool_call_id }) => ({
+      ...managedHistory.map(({ sender, message, name, tool_call_id }) => ({
         role: sender,
         name,
         content: message as string,
