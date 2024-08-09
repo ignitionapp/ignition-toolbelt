@@ -26,6 +26,7 @@ export type AskLocalAssistantArgs = {
   isFunctionCall?: boolean;
   tools?: ChatCompletionTool[];
   onDownloading(progress: number, totalMegaBytes: number): void;
+  onDownloadPreparing(): void;
   onLoading(progress: number): void;
   onInit: () => void;
   onUpdate: (assistantMessage: string) => void;

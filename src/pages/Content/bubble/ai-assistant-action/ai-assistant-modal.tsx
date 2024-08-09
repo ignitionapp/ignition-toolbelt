@@ -59,7 +59,9 @@ export const AiAssistantModal = ({
   const conversationRef = useRef<HTMLDivElement>(null);
 
   const [progress, setProgress] = useState(0);
-  const [progressType, setProgressType] = useState<ProgressType>();
+  const [progressType, setProgressType] = useState<ProgressType>(
+    ProgressType.IDLE
+  );
   const [totalDownloadedMegaBytes, setTotalDownloadedMegaBytes] = useState(0);
 
   const { setValue, handleSubmit, register, reset } = useForm<FormValues>({
@@ -127,12 +129,24 @@ export const AiAssistantModal = ({
   const handleLoading = (progress: number) => {
     setProgressType(ProgressType.LOADING);
     setProgress(progress);
+    if (progress === 100) {
+      setProgressType(ProgressType.IDLE);
+      setProgress(0);
+    }
   };
 
   const handleDownloading = (progress: number, totalMegaBytes: number) => {
     setProgressType(ProgressType.DOWNLOADING);
     setProgress(progress);
     setTotalDownloadedMegaBytes(totalMegaBytes);
+    if (progress === 100) {
+      setProgressType(ProgressType.IDLE);
+      setProgress(0);
+    }
+  };
+
+  const handleDownloadPreparing = () => {
+    setProgressType(ProgressType.DOWNLOAD_PREPARING);
   };
 
   const handleSave = async ({ userMessage }: FormValues) => {
@@ -166,6 +180,7 @@ export const AiAssistantModal = ({
         token,
         onInit: handleInitConversation,
         onDownloading: handleDownloading,
+        onDownloadPreparing: handleDownloadPreparing,
         onLoading: handleLoading,
         onUpdate: handleUpdateConversation,
         onCallFunction: handleCallFunction,
@@ -206,7 +221,7 @@ export const AiAssistantModal = ({
     reset();
   };
 
-  const isLoading = progress !== 100 && progress !== 0;
+  const isLoading = progressType !== ProgressType.IDLE;
 
   return (
     <Modal isCentered isOpen={isOpen} onClose={onClose} size="3xl">
@@ -269,13 +284,9 @@ export const AiAssistantModal = ({
 
                   {isLoading && (
                     <ProgressBar
-                      message={
-                        progressType === ProgressType.LOADING
-                          ? 'Initializing the assistant...'
-                          : `Downloading the assistant (${totalDownloadedMegaBytes} MB downloaded) ...`
-                      }
                       progress={progress}
                       progressType={progressType}
+                      totalDownloadedMegaBytes={totalDownloadedMegaBytes}
                     />
                   )}
                 </Box>

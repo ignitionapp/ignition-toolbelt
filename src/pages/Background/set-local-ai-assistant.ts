@@ -14,7 +14,7 @@ chrome.runtime.onConnect.addListener((port) => {
   port.onMessage.addListener(handler.onmessage.bind(handler));
 });
 
-let worker = null;
+let worker: Worker | null = null;
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === 'initWorker') {

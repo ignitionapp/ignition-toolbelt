@@ -31,6 +31,7 @@ export const askLocalAssistant = async ({
   onInit,
   onLoading,
   onDownloading,
+  onDownloadPreparing,
   onUpdate,
   onCallFunction,
 }: AskLocalAssistantArgs): Promise<void> => {
@@ -161,6 +162,7 @@ export const askLocalAssistant = async ({
         onInit,
         onLoading,
         onDownloading,
+        onDownloadPreparing,
         onUpdate,
         onCallFunction,
       });

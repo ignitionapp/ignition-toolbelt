@@ -43,6 +43,7 @@
     "react-markdown": "^9.0.1",
     "react-select": "^5.8.0",
     "remark-gfm": "^4.0.0",
+    "ts-pattern": "^5.2.0",
     "whatwg-fetch": "^3.6.20"
   },
   "devDependencies": {

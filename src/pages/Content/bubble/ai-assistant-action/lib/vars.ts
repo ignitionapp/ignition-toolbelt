@@ -201,4 +201,6 @@ export const TOOLS: Tool[] = [
 export enum ProgressType {
   LOADING = 'loading',
   DOWNLOADING = 'downloading',
+  DOWNLOAD_PREPARING = 'downloadPreparing',
+  IDLE = 'idle'
 }
