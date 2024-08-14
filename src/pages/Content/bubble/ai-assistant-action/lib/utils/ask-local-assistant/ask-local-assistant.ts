@@ -153,7 +153,7 @@ export const askLocalAssistant = async ({
         messageRole: 'user',
         messageName: functionName,
         messageContent: JSON.stringify(functionResult),
-        history: messages.map(({ role, name, content }) => ({
+        history: messages.slice(1).map(({ role, name, content }) => ({
           sender: role,
           name,
           message: content,

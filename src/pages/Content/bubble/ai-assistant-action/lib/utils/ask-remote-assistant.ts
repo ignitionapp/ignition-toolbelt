@@ -45,7 +45,7 @@ export const askRemoteAssistant = async ({
 }: Args): Promise<
   | void
   | (OpenAI.Chat.Completions.ChatCompletion &
-      Stream<OpenAI.Chat.Completions.ChatCompletionChunk>)
+    Stream<OpenAI.Chat.Completions.ChatCompletionChunk>)
 > => {
   try {
     const previousMessages: Message[] = history.map((h) => ({
@@ -132,7 +132,7 @@ export const askRemoteAssistant = async ({
         messageName: functionName,
         messageContent: JSON.stringify(functionResult),
         token,
-        history: messages.map(({ role, name, content }) => ({
+        history: messages.slice(1).map(({ role, name, content }) => ({
           sender: role,
           name,
           message: content,
