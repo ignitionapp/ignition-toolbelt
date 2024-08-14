@@ -3612,10 +3612,10 @@
   resolved "https://registry.yarnpkg.com/@microsoft/fetch-event-source/-/fetch-event-source-2.0.1.tgz#9ceecc94b49fbaa15666e38ae8587f64acce007d"
   integrity sha512-W6CLUJ2eBMw3Rec70qrsEW0jOm/3twwJv21mrmj2yORiaVmVYGS4sSS5yUwvQc1ZlDLYGPnClVWmUUMagKNsfA==
 
-"@mlc-ai/web-llm@^0.2.51":
-  version "0.2.51"
-  resolved "https://registry.yarnpkg.com/@mlc-ai/web-llm/-/web-llm-0.2.51.tgz#73dced138262bf79a1bc082dd36dc6d1a928b54f"
-  integrity sha512-62aiDyiSzUah1vqnTcZvH3lFRjz4VM2CeIBp7QpcFgX2HPA3vVYhDbV0cOVGAfK1MfH1CipZiyjOjkQUGjjRTw==
+"@mlc-ai/web-llm@^0.2.60":
+  version "0.2.60"
+  resolved "https://registry.yarnpkg.com/@mlc-ai/web-llm/-/web-llm-0.2.60.tgz#6188a44ff87c480436b4aeca9eb741e48c4fad2a"
+  integrity sha512-zy9gO+36uZeH1sswMLhFvP2ngeXqUkmFvZ5zi1FcUFOpnVvjNuVECOkoKGXD5sWlPsOIDooEA9scl0mZrPTOIA==
   dependencies:
     loglevel "^1.9.1"
 
