@@ -84,9 +84,10 @@ export const HtmlContent = defineStyleConfig({
     },
     table: {
       border: "solid 1px #eee",
-      minWidth: '640px',
+      minWidth: '500px',
       tableLayout: 'fixed',
-      borderCollapse: 'collapsed',
+      borderCollapse: 'collapse',
+      marginY: 'medium',
     },
     'th': {
       background: '#eee',
