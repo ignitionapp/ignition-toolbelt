@@ -58,11 +58,10 @@ export const askRemoteAssistant = async ({
     const messages: Message[] = [
       {
         role: 'system',
-        content: prompt,
-      },
-      {
-        role: 'system',
-        content: `Today is ${today.toDateString()}`,
+        content: prompt.replace('{{tools_instructions}}', '').replace(
+          '{{today_date}}',
+          today.toDateString()
+        ),
       },
       ...previousMessages,
       {
