@@ -1,12 +1,12 @@
 import { CreateExtensionServiceWorkerMLCEngine } from '@mlc-ai/web-llm';
 import type { ChatCompletionChunk, MLCEngineInterface } from '@mlc-ai/web-llm';
 
-import prompt from '../../system.md';
-import { TOOLS } from '../../vars';
 import { AskLocalAssistantArgs, Message, OnInitializing } from './types';
+import { splitFunctionCall, getSystemPrompt, removeTypename } from './utils';
 import type { ChatCompletionMessageParam } from '@mlc-ai/web-llm';
+import { Role } from '../../types';
 
-const MODEL_ID = 'Hermes-2-Pro-Llama-3-8B-q4f16_1-MLC';
+const MODEL_ID = 'Llama-3.1-8B-Instruct-q4f16_1-MLC';
 
 let engine: MLCEngineInterface | null = null;
 
@@ -26,7 +26,6 @@ export const askLocalAssistant = async ({
   messageRole,
   messageName,
   messageContent,
-  isFunctionCall = true,
   history,
   onInit,
   onLoading,
@@ -74,21 +73,23 @@ export const askLocalAssistant = async ({
       });
     }
 
+    const prompt = getSystemPrompt();
     const messages: Message[] = [
       {
-        role: 'user',
-        content: `${prompt}\n\n Today is ${new Date().toDateString()}`,
+        role: 'system',
+        content: prompt
       },
       ...history.map(({ sender, message, name, tool_call_id }) => ({
         role: sender,
-        name,
+        ...(name && { name }),
         content: message as string,
-        tool_call_id,
+        ...(tool_call_id && { tool_call_id }),
       })),
       {
         role: messageRole,
-        ...(messageName && { name: messageName }),
         content: messageContent,
+        ...(messageName && { name: messageName }),
+        ...(messageRole === 'tool' && { tool_call_id: '0' }),
       },
     ];
 
@@ -101,8 +102,6 @@ export const askLocalAssistant = async ({
     let assistantMessage = '';
     const asyncChunkGenerator = await engine.chat.completions.create({
       messages: messages as ChatCompletionMessageParam[],
-      tools: isFunctionCall ? TOOLS : undefined,
-      tool_choice: isFunctionCall ? 'auto' : undefined,
       stream: true,
       stream_options: {
         include_usage: true,
@@ -110,28 +109,22 @@ export const askLocalAssistant = async ({
       temperature: 0,
     });
 
-    let lastChunk: ChatCompletionChunk | undefined;
-    let usageChunk: ChatCompletionChunk | undefined;
+    // let lastChunk: ChatCompletionChunk | undefined;
+    // let usageChunk: ChatCompletionChunk | undefined;
 
     for await (const chunk of asyncChunkGenerator) {
       assistantMessage += chunk.choices[0]?.delta?.content || '';
       onUpdate(assistantMessage);
-      if (!chunk.usage) {
-        lastChunk = chunk;
-      }
-      usageChunk = chunk;
+      // if (!chunk.usage) {
+      //   lastChunk = chunk;
+      // }
+      // usageChunk = chunk;
+      // TODO
     }
 
-    // TODO
-    // console.log('[DEBUG] usageChunk.usage', usageChunk?.usage);
-
-    const toolCalls = lastChunk!.choices[0].delta.tool_calls || [];
-    if (toolCalls.length) {
-      const functionName = toolCalls[0].function?.name;
-      const functionArguments = toolCalls[0].function?.arguments
-        ? JSON.parse(toolCalls[0].function?.arguments)
-        : undefined;
-
+    const result = splitFunctionCall(assistantMessage);
+    if (result) {
+      const { functionName, functionArguments } = result;
       if (!functionName || !functionArguments) {
         return;
       }
@@ -141,7 +134,8 @@ export const askLocalAssistant = async ({
       console.info(
         `[DEBUG] Function calling: ${functionName}(${JSON.stringify(
           functionArguments
-        )})`
+        )
+        })`
       );
 
       const functionResult = await onCallFunction(
@@ -149,16 +143,23 @@ export const askLocalAssistant = async ({
         functionArguments
       );
 
-      return askLocalAssistant({
-        messageRole: 'user',
-        messageName: functionName,
-        messageContent: JSON.stringify(functionResult),
-        history: messages.slice(1).map(({ role, name, content }) => ({
+      const updatedHistory = [
+        ...messages.slice(1).map(({ role, name, content }) => ({
           sender: role,
           name,
           message: content,
         })),
-        isFunctionCall: false,
+        {
+          sender: 'assistant' as Role,
+          name: 'function_call',
+          message: `${functionName}(${JSON.stringify(functionArguments)})`
+        }
+      ];
+
+      return askLocalAssistant({
+        messageRole: 'tool',
+        messageContent: JSON.stringify(removeTypename(functionResult)),
+        history: updatedHistory,
         onInit,
         onLoading,
         onDownloading,

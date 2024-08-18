@@ -17940,12 +17940,7 @@ export type InvoiceResultFragment = {
   };
   paymentProgress?: {
     __typename: 'SearchInvoicePaymentProgressType';
-    currentStep: number;
-    description?: string;
     displayName: string;
-    status: SearchInvoicePaymentProgressStatusType;
-    statusLevel: SearchInvoicePaymentProgressStatusLevelType;
-    totalSteps: number;
   };
 };
 
@@ -18342,12 +18337,7 @@ export type SearchInvoicesQuery = {
                 };
                 paymentProgress?: {
                   __typename: 'SearchInvoicePaymentProgressType';
-                  currentStep: number;
-                  description?: string;
                   displayName: string;
-                  status: SearchInvoicePaymentProgressStatusType;
-                  statusLevel: SearchInvoicePaymentProgressStatusLevelType;
-                  totalSteps: number;
                 };
               }
             | { __typename: 'ProposalCustomTemplate' }

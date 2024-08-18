@@ -1,9 +1,13 @@
 import OpenAI from 'openai';
 import { Stream } from 'openai/streaming';
 
-import prompt from '../system.md';
+import sourcePrompt from '../system.md';
 import { HistoryItem, Role, Tool, Message } from '../types';
 import { TOOLS } from '../vars';
+
+const prompt = sourcePrompt
+  .replace('{{today_date}}', new Date().toDateString())
+  .replace('{{tools_instructions}}', '')
 
 const isValidJSON = (str: string) => {
   try {
@@ -54,14 +58,10 @@ export const askRemoteAssistant = async ({
       ...(h.name && { name: h.name }),
     }));
 
-    const today = new Date();
     const messages: Message[] = [
       {
         role: 'system',
-        content: prompt.replace('{{tools_instructions}}', '').replace(
-          '{{today_date}}',
-          today.toDateString()
-        ),
+        content: prompt,
       },
       ...previousMessages,
       {

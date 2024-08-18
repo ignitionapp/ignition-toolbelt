@@ -120,12 +120,7 @@ export const InvoiceResultFragmentDoc = gql`
       type
     }
     paymentProgress {
-      currentStep
-      description
       displayName
-      status
-      statusLevel
-      totalSteps
     }
     paymentStatus
     payoutOn
