@@ -18,12 +18,7 @@ fragment invoiceResult on InvoiceResult {
     type
   }
   paymentProgress {
-    currentStep
-    description
     displayName
-    status
-    statusLevel
-    totalSteps
   }
   paymentStatus
   payoutOn
