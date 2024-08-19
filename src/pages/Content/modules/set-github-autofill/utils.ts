@@ -37,7 +37,7 @@ export const fetchCompare = async (url: string, token: string) => {
   const { compareUrl } = getApiUrls(url);
   try {
     if (!compareUrl) {
-      return
+      return { content: '', commits: [] }
     }
 
     const compareResponse = await fetch(compareUrl, { headers });

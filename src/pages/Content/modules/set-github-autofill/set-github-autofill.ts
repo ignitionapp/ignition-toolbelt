@@ -24,7 +24,6 @@ const run = async (url?: string) => {
     token: '',
   };
   const { token: assistantToken } = results[AI_ASSISTANT] || {};
-  console.log('[DEBUG] assistantToken', assistantToken)
 
   //====================
   // Autofill reviewers
