@@ -1,91 +1,36 @@
 import 'arrive';
 
+import OpenAI from 'openai';
+
+import prompt from './prompt.md';
+
 import {
   GITHUB_AUTOFILL,
-  waitForElement,
+  GITHUB_AUTOFILL_SETTING,
+  AI_ASSISTANT,
   q,
   simulateClick,
   simulateType,
-  GITHUB_AUTOFILL_SETTING,
-} from '../lib';
+  waitForElement,
+} from '../../lib';
 
-const REGEXP_PR_URL = /https:\/\/github\.com\/([^/]+)\/([^/]+)\/pull\/(\d+)/;
-const REGEXP_COMPARE_URL =
-  /https:\/\/github\.com\/([^/]+)\/([^/]+)\/compare\/([^...]+)...([^:]+):([^?]+)/;
-
-const getApiUrls = (url: string) => {
-  const result: Record<string, string> = {};
-
-  const compareUrlParts = url.match(REGEXP_COMPARE_URL);
-  if (compareUrlParts) {
-    const baseOwner = compareUrlParts[1];
-    const baseRepo = compareUrlParts[2];
-    const baseBranch = compareUrlParts[3];
-    const headOwner = compareUrlParts[4];
-    const headBranch = compareUrlParts[5];
-
-    result.compareUrl = `https://api.github.com/repos/${baseOwner}/${baseRepo}/compare/${baseBranch}...${headOwner}:${headBranch}`;
-  }
-
-  // NOTE - This is not used at the moment
-  const prUrlParts = url.match(REGEXP_PR_URL);
-  if (prUrlParts) {
-    const baseOwner = prUrlParts[1];
-    const baseRepo = prUrlParts[2];
-    const prNumber = prUrlParts[3];
-    result.diffUrl = `https://api.github.com/repos/${baseOwner}/${baseRepo}/pulls/${prNumber}.diff`;
-  }
-
-  return result;
-};
-
-const fetchDetails = async (url: string, token: string) => {
-  const headers = {
-    Authorization: `token ${token}`,
-    Accept: 'application/vnd.github.v3+json',
-  };
-
-  const { compareUrl, diffUrl } = getApiUrls(url);
-  const result: Record<string, any> = {};
-  try {
-    if (compareUrl) {
-      const compareResponse = await fetch(compareUrl, { headers });
-      result.compareData = await compareResponse.json();
-    }
-
-    if (diffUrl) {
-      const diffResponse = await fetch(diffUrl, {
-        headers: {
-          ...headers,
-          Accept: 'application/vnd.github.v3.diff',
-        },
-      });
-
-      if (!diffResponse.ok) {
-        throw new Error(
-          `GitHub API responded with status: ${diffResponse.status}`
-        );
-      }
-
-      result.diffContent = await diffResponse.text();
-    }
-
-    return result;
-  } catch (error) {
-    console.error('Error fetching details:', error);
-    throw error;
-  }
-};
+import { fetchCompare } from './utils';
 
 const run = async (url?: string) => {
-  const results = await chrome.storage.local.get([GITHUB_AUTOFILL_SETTING]);
+  const results = await chrome.storage.local.get([GITHUB_AUTOFILL_SETTING, AI_ASSISTANT]);
   const { reviewers, labels, token } = results[GITHUB_AUTOFILL_SETTING] || {
     reviewers: [],
     labels: [],
     token: '',
   };
+  const { token: assistantToken } = results[AI_ASSISTANT] || {};
+  console.log('[DEBUG] assistantToken', assistantToken)
 
+  //====================
+  // Autofill reviewers
+  //====================
   if (reviewers.length) {
+    console.log('[DEBUG] reviewers', reviewers)
     const reviewerEl = await waitForElement<HTMLDivElement>(
       '[data-menu-trigger="reviewers-select-menu"]'
     );
@@ -109,7 +54,11 @@ const run = async (url?: string) => {
     }
   }
 
+  //====================
+  // Autofill labels
+  //====================
   if (labels.length) {
+    console.log('[DEBUG] labels', labels)
     const labelEl = q('[data-menu-trigger="labels-select-menu"]');
     if (labelEl) {
       simulateClick(labelEl);
@@ -131,15 +80,18 @@ const run = async (url?: string) => {
     }
   }
 
+  //======================
+  // Autofill description
+  //======================
+
   if (token && url) {
-    const { compareData } = await fetchDetails(url, token);
-    const { commits } = compareData;
+    const { content = '', commits = [] } = await fetchCompare(url, token);
     const lastCommit = commits[commits.length - 1].commit;
 
     const title = lastCommit.message.split('\n')[0];
-    const description = lastCommit.message.split('\n\n')[1];
     const titleEl = q<HTMLInputElement>('#pull_request_title');
     const bodyEl = q<HTMLTextAreaElement>('#pull_request_body');
+
     if (titleEl) {
       titleEl.value = title;
     }
@@ -150,14 +102,41 @@ const run = async (url?: string) => {
 ## Why
 \n\n
 ## How
-\n${description ? description : ''}\n
+\n${lastCommit?.message.split('\n\n')[1] || ''}\n
 ## Before
 \n\n
 ## After
 \n\n`;
     }
+
+    if (assistantToken) {
+
+      const openai = new OpenAI({
+        apiKey: assistantToken,
+        dangerouslyAllowBrowser: true,
+      });
+
+      const stream = await openai.chat.completions.create({
+        model: 'gpt-4o',
+        messages: [
+          { role: 'system', content: prompt },
+          { role: 'user', content },
+        ],
+        temperature: 0,
+        stream: true,
+      });
+
+      if (bodyEl) {
+        bodyEl.value = '';
+        for await (const chunk of stream) {
+          const content = chunk.choices[0]?.delta?.content || '';
+          bodyEl.value += content;
+          bodyEl.scrollTop = bodyEl.scrollHeight;
+        }
+      }
+    }
   }
-};
+}
 
 export const setGithubAutofill = async () => {
   chrome.runtime.onMessage.addListener(async ({ type, value }) => {
