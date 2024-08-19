@@ -1,0 +1,36 @@
+query searchClients(
+  $booleanFilters: [SearchQueryBooleanFilterInput!]
+  $dateFilters: [SearchQueryDateFilterInput!]
+  $relativeDateFilters: [SearchQueryRelativeDateFilterInput!]
+  $numberFilters: [SearchQueryNumberFilterInput!]
+  $textFilters: [SearchQueryTextFilterInput!]
+  $sort: SearchQuerySortInput
+  $pagination: PaginationInput
+) {
+  search {
+    pagedQuery(
+      type: CLIENT
+      booleanFilters: $booleanFilters
+      dateFilters: $dateFilters
+      relativeDateFilters: $relativeDateFilters
+      numberFilters: $numberFilters
+      textFilters: $textFilters
+      sort: $sort
+      pagination: $pagination
+    ) {
+      results {
+        edges {
+          node {
+            ... on ClientResult {
+              ...clientResult
+            }
+          }
+        }
+      }
+      totalCount
+      totalValue {
+        format
+      }
+    }
+  }
+}

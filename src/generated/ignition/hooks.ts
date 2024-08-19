@@ -8,10 +8,6 @@ const defaultOptions = {} as const;
 export const AppClientResultFragmentDoc = gql`
   fragment appClientResult on AppClientResult {
     id
-    appClient {
-      id
-      name
-    }
     appData {
       ... on AppClientProconnect {
         taxReturnType
@@ -20,6 +16,7 @@ export const AppClientResultFragmentDoc = gql`
     appName
     ignitionappClientId
     lastSyncedAt
+    name
     primaryContactEmail
     primaryContactName
   }
@@ -353,6 +350,117 @@ export type AcknowledgementsQueryResult = Apollo.QueryResult<
   Types.AcknowledgementsQuery,
   Types.AcknowledgementsQueryVariables
 >;
+export const SearchBillingItemsDocument = gql`
+  query searchBillingItems(
+    $booleanFilters: [SearchQueryBooleanFilterInput!]
+    $dateFilters: [SearchQueryDateFilterInput!]
+    $relativeDateFilters: [SearchQueryRelativeDateFilterInput!]
+    $numberFilters: [SearchQueryNumberFilterInput!]
+    $textFilters: [SearchQueryTextFilterInput!]
+    $sort: SearchQuerySortInput
+    $pagination: PaginationInput
+  ) {
+    search {
+      pagedQuery(
+        type: BILLING_ITEM
+        booleanFilters: $booleanFilters
+        dateFilters: $dateFilters
+        relativeDateFilters: $relativeDateFilters
+        numberFilters: $numberFilters
+        textFilters: $textFilters
+        sort: $sort
+        pagination: $pagination
+      ) {
+        results {
+          edges {
+            node {
+              ... on BillingItemResult {
+                ...billingItemResult
+              }
+            }
+          }
+        }
+        totalCount
+        totalValue {
+          format
+        }
+      }
+    }
+  }
+  ${BillingItemResultFragmentDoc}
+`;
+
+/**
+ * __useSearchBillingItemsQuery__
+ *
+ * To run a query within a React component, call `useSearchBillingItemsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useSearchBillingItemsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useSearchBillingItemsQuery({
+ *   variables: {
+ *      booleanFilters: // value for 'booleanFilters'
+ *      dateFilters: // value for 'dateFilters'
+ *      relativeDateFilters: // value for 'relativeDateFilters'
+ *      numberFilters: // value for 'numberFilters'
+ *      textFilters: // value for 'textFilters'
+ *      sort: // value for 'sort'
+ *      pagination: // value for 'pagination'
+ *   },
+ * });
+ */
+export function useSearchBillingItemsQuery(
+  baseOptions?: Apollo.QueryHookOptions<
+    Types.SearchBillingItemsQuery,
+    Types.SearchBillingItemsQueryVariables
+  >
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<
+    Types.SearchBillingItemsQuery,
+    Types.SearchBillingItemsQueryVariables
+  >(SearchBillingItemsDocument, options);
+}
+export function useSearchBillingItemsLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    Types.SearchBillingItemsQuery,
+    Types.SearchBillingItemsQueryVariables
+  >
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<
+    Types.SearchBillingItemsQuery,
+    Types.SearchBillingItemsQueryVariables
+  >(SearchBillingItemsDocument, options);
+}
+export function useSearchBillingItemsSuspenseQuery(
+  baseOptions?: Apollo.SuspenseQueryHookOptions<
+    Types.SearchBillingItemsQuery,
+    Types.SearchBillingItemsQueryVariables
+  >
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useSuspenseQuery<
+    Types.SearchBillingItemsQuery,
+    Types.SearchBillingItemsQueryVariables
+  >(SearchBillingItemsDocument, options);
+}
+export type SearchBillingItemsQueryHookResult = ReturnType<
+  typeof useSearchBillingItemsQuery
+>;
+export type SearchBillingItemsLazyQueryHookResult = ReturnType<
+  typeof useSearchBillingItemsLazyQuery
+>;
+export type SearchBillingItemsSuspenseQueryHookResult = ReturnType<
+  typeof useSearchBillingItemsSuspenseQuery
+>;
+export type SearchBillingItemsQueryResult = Apollo.QueryResult<
+  Types.SearchBillingItemsQuery,
+  Types.SearchBillingItemsQueryVariables
+>;
 export const CodeVersionDocument = gql`
   query codeVersion {
     codeVersion
@@ -621,6 +729,228 @@ export type SearchQueryResult = Apollo.QueryResult<
   Types.SearchQuery,
   Types.SearchQueryVariables
 >;
+export const SearchAppClientsDocument = gql`
+  query searchAppClients(
+    $booleanFilters: [SearchQueryBooleanFilterInput!]
+    $dateFilters: [SearchQueryDateFilterInput!]
+    $relativeDateFilters: [SearchQueryRelativeDateFilterInput!]
+    $numberFilters: [SearchQueryNumberFilterInput!]
+    $textFilters: [SearchQueryTextFilterInput!]
+    $sort: SearchQuerySortInput
+    $pagination: PaginationInput
+  ) {
+    search {
+      pagedQuery(
+        type: APP_CLIENT
+        booleanFilters: $booleanFilters
+        dateFilters: $dateFilters
+        relativeDateFilters: $relativeDateFilters
+        numberFilters: $numberFilters
+        textFilters: $textFilters
+        sort: $sort
+        pagination: $pagination
+      ) {
+        results {
+          edges {
+            node {
+              ... on AppClientResult {
+                ...appClientResult
+              }
+            }
+          }
+        }
+        totalCount
+        totalValue {
+          format
+        }
+      }
+    }
+  }
+  ${AppClientResultFragmentDoc}
+`;
+
+/**
+ * __useSearchAppClientsQuery__
+ *
+ * To run a query within a React component, call `useSearchAppClientsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useSearchAppClientsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useSearchAppClientsQuery({
+ *   variables: {
+ *      booleanFilters: // value for 'booleanFilters'
+ *      dateFilters: // value for 'dateFilters'
+ *      relativeDateFilters: // value for 'relativeDateFilters'
+ *      numberFilters: // value for 'numberFilters'
+ *      textFilters: // value for 'textFilters'
+ *      sort: // value for 'sort'
+ *      pagination: // value for 'pagination'
+ *   },
+ * });
+ */
+export function useSearchAppClientsQuery(
+  baseOptions?: Apollo.QueryHookOptions<
+    Types.SearchAppClientsQuery,
+    Types.SearchAppClientsQueryVariables
+  >
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<
+    Types.SearchAppClientsQuery,
+    Types.SearchAppClientsQueryVariables
+  >(SearchAppClientsDocument, options);
+}
+export function useSearchAppClientsLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    Types.SearchAppClientsQuery,
+    Types.SearchAppClientsQueryVariables
+  >
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<
+    Types.SearchAppClientsQuery,
+    Types.SearchAppClientsQueryVariables
+  >(SearchAppClientsDocument, options);
+}
+export function useSearchAppClientsSuspenseQuery(
+  baseOptions?: Apollo.SuspenseQueryHookOptions<
+    Types.SearchAppClientsQuery,
+    Types.SearchAppClientsQueryVariables
+  >
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useSuspenseQuery<
+    Types.SearchAppClientsQuery,
+    Types.SearchAppClientsQueryVariables
+  >(SearchAppClientsDocument, options);
+}
+export type SearchAppClientsQueryHookResult = ReturnType<
+  typeof useSearchAppClientsQuery
+>;
+export type SearchAppClientsLazyQueryHookResult = ReturnType<
+  typeof useSearchAppClientsLazyQuery
+>;
+export type SearchAppClientsSuspenseQueryHookResult = ReturnType<
+  typeof useSearchAppClientsSuspenseQuery
+>;
+export type SearchAppClientsQueryResult = Apollo.QueryResult<
+  Types.SearchAppClientsQuery,
+  Types.SearchAppClientsQueryVariables
+>;
+export const SearchClientsDocument = gql`
+  query searchClients(
+    $booleanFilters: [SearchQueryBooleanFilterInput!]
+    $dateFilters: [SearchQueryDateFilterInput!]
+    $relativeDateFilters: [SearchQueryRelativeDateFilterInput!]
+    $numberFilters: [SearchQueryNumberFilterInput!]
+    $textFilters: [SearchQueryTextFilterInput!]
+    $sort: SearchQuerySortInput
+    $pagination: PaginationInput
+  ) {
+    search {
+      pagedQuery(
+        type: CLIENT
+        booleanFilters: $booleanFilters
+        dateFilters: $dateFilters
+        relativeDateFilters: $relativeDateFilters
+        numberFilters: $numberFilters
+        textFilters: $textFilters
+        sort: $sort
+        pagination: $pagination
+      ) {
+        results {
+          edges {
+            node {
+              ... on ClientResult {
+                ...clientResult
+              }
+            }
+          }
+        }
+        totalCount
+        totalValue {
+          format
+        }
+      }
+    }
+  }
+  ${ClientResultFragmentDoc}
+`;
+
+/**
+ * __useSearchClientsQuery__
+ *
+ * To run a query within a React component, call `useSearchClientsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useSearchClientsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useSearchClientsQuery({
+ *   variables: {
+ *      booleanFilters: // value for 'booleanFilters'
+ *      dateFilters: // value for 'dateFilters'
+ *      relativeDateFilters: // value for 'relativeDateFilters'
+ *      numberFilters: // value for 'numberFilters'
+ *      textFilters: // value for 'textFilters'
+ *      sort: // value for 'sort'
+ *      pagination: // value for 'pagination'
+ *   },
+ * });
+ */
+export function useSearchClientsQuery(
+  baseOptions?: Apollo.QueryHookOptions<
+    Types.SearchClientsQuery,
+    Types.SearchClientsQueryVariables
+  >
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<
+    Types.SearchClientsQuery,
+    Types.SearchClientsQueryVariables
+  >(SearchClientsDocument, options);
+}
+export function useSearchClientsLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    Types.SearchClientsQuery,
+    Types.SearchClientsQueryVariables
+  >
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<
+    Types.SearchClientsQuery,
+    Types.SearchClientsQueryVariables
+  >(SearchClientsDocument, options);
+}
+export function useSearchClientsSuspenseQuery(
+  baseOptions?: Apollo.SuspenseQueryHookOptions<
+    Types.SearchClientsQuery,
+    Types.SearchClientsQueryVariables
+  >
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useSuspenseQuery<
+    Types.SearchClientsQuery,
+    Types.SearchClientsQueryVariables
+  >(SearchClientsDocument, options);
+}
+export type SearchClientsQueryHookResult = ReturnType<
+  typeof useSearchClientsQuery
+>;
+export type SearchClientsLazyQueryHookResult = ReturnType<
+  typeof useSearchClientsLazyQuery
+>;
+export type SearchClientsSuspenseQueryHookResult = ReturnType<
+  typeof useSearchClientsSuspenseQuery
+>;
+export type SearchClientsQueryResult = Apollo.QueryResult<
+  Types.SearchClientsQuery,
+  Types.SearchClientsQueryVariables
+>;
 export const SearchInvoicesDocument = gql`
   query searchInvoices(
     $booleanFilters: [SearchQueryBooleanFilterInput!]
@@ -731,6 +1061,117 @@ export type SearchInvoicesSuspenseQueryHookResult = ReturnType<
 export type SearchInvoicesQueryResult = Apollo.QueryResult<
   Types.SearchInvoicesQuery,
   Types.SearchInvoicesQueryVariables
+>;
+export const SearchProposalsDocument = gql`
+  query searchProposals(
+    $booleanFilters: [SearchQueryBooleanFilterInput!]
+    $dateFilters: [SearchQueryDateFilterInput!]
+    $relativeDateFilters: [SearchQueryRelativeDateFilterInput!]
+    $numberFilters: [SearchQueryNumberFilterInput!]
+    $textFilters: [SearchQueryTextFilterInput!]
+    $sort: SearchQuerySortInput
+    $pagination: PaginationInput
+  ) {
+    search {
+      pagedQuery(
+        type: PROPOSAL
+        booleanFilters: $booleanFilters
+        dateFilters: $dateFilters
+        relativeDateFilters: $relativeDateFilters
+        numberFilters: $numberFilters
+        textFilters: $textFilters
+        sort: $sort
+        pagination: $pagination
+      ) {
+        results {
+          edges {
+            node {
+              ... on ProposalResult {
+                ...proposalResult
+              }
+            }
+          }
+        }
+        totalCount
+        totalValue {
+          format
+        }
+      }
+    }
+  }
+  ${ProposalResultFragmentDoc}
+`;
+
+/**
+ * __useSearchProposalsQuery__
+ *
+ * To run a query within a React component, call `useSearchProposalsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useSearchProposalsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useSearchProposalsQuery({
+ *   variables: {
+ *      booleanFilters: // value for 'booleanFilters'
+ *      dateFilters: // value for 'dateFilters'
+ *      relativeDateFilters: // value for 'relativeDateFilters'
+ *      numberFilters: // value for 'numberFilters'
+ *      textFilters: // value for 'textFilters'
+ *      sort: // value for 'sort'
+ *      pagination: // value for 'pagination'
+ *   },
+ * });
+ */
+export function useSearchProposalsQuery(
+  baseOptions?: Apollo.QueryHookOptions<
+    Types.SearchProposalsQuery,
+    Types.SearchProposalsQueryVariables
+  >
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<
+    Types.SearchProposalsQuery,
+    Types.SearchProposalsQueryVariables
+  >(SearchProposalsDocument, options);
+}
+export function useSearchProposalsLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    Types.SearchProposalsQuery,
+    Types.SearchProposalsQueryVariables
+  >
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<
+    Types.SearchProposalsQuery,
+    Types.SearchProposalsQueryVariables
+  >(SearchProposalsDocument, options);
+}
+export function useSearchProposalsSuspenseQuery(
+  baseOptions?: Apollo.SuspenseQueryHookOptions<
+    Types.SearchProposalsQuery,
+    Types.SearchProposalsQueryVariables
+  >
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useSuspenseQuery<
+    Types.SearchProposalsQuery,
+    Types.SearchProposalsQueryVariables
+  >(SearchProposalsDocument, options);
+}
+export type SearchProposalsQueryHookResult = ReturnType<
+  typeof useSearchProposalsQuery
+>;
+export type SearchProposalsLazyQueryHookResult = ReturnType<
+  typeof useSearchProposalsLazyQuery
+>;
+export type SearchProposalsSuspenseQueryHookResult = ReturnType<
+  typeof useSearchProposalsSuspenseQuery
+>;
+export type SearchProposalsQueryResult = Apollo.QueryResult<
+  Types.SearchProposalsQuery,
+  Types.SearchProposalsQueryVariables
 >;
 export const UpcomingBusinessDaysDocument = gql`
   query upcomingBusinessDays($startDate: Date!) {

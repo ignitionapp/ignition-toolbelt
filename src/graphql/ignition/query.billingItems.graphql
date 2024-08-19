@@ -1,0 +1,36 @@
+query searchBillingItems(
+  $booleanFilters: [SearchQueryBooleanFilterInput!]
+  $dateFilters: [SearchQueryDateFilterInput!]
+  $relativeDateFilters: [SearchQueryRelativeDateFilterInput!]
+  $numberFilters: [SearchQueryNumberFilterInput!]
+  $textFilters: [SearchQueryTextFilterInput!]
+  $sort: SearchQuerySortInput
+  $pagination: PaginationInput
+) {
+  search {
+    pagedQuery(
+      type: BILLING_ITEM
+      booleanFilters: $booleanFilters
+      dateFilters: $dateFilters
+      relativeDateFilters: $relativeDateFilters
+      numberFilters: $numberFilters
+      textFilters: $textFilters
+      sort: $sort
+      pagination: $pagination
+    ) {
+      results {
+        edges {
+          node {
+            ... on BillingItemResult {
+              ...billingItemResult
+            }
+          }
+        }
+      }
+      totalCount
+      totalValue {
+        format
+      }
+    }
+  }
+}
