@@ -1,10 +1,7 @@
-const REGEXP_PR_URL = /https:\/\/github\.com\/([^/]+)\/([^/]+)\/pull\/(\d+)/;
 const REGEXP_COMPARE_URL =
   /https:\/\/github\.com\/([^/]+)\/([^/]+)\/compare\/([^...]+)...([^:]+):([^?]+)/;
 
-export const getApiUrls = (url: string) => {
-  const result: Record<string, string> = {};
-
+export const getCompareUrl = (url: string) => {
   const compareUrlParts = url.match(REGEXP_COMPARE_URL);
   if (compareUrlParts) {
     const baseOwner = compareUrlParts[1];
@@ -13,19 +10,8 @@ export const getApiUrls = (url: string) => {
     const headOwner = compareUrlParts[4];
     const headBranch = compareUrlParts[5];
 
-    result.compareUrl = `https://api.github.com/repos/${baseOwner}/${baseRepo}/compare/${baseBranch}...${headOwner}:${headBranch}`;
+    return `https://api.github.com/repos/${baseOwner}/${baseRepo}/compare/${baseBranch}...${headOwner}:${headBranch}`;
   }
-
-  // NOTE - This is not used at the moment
-  const prUrlParts = url.match(REGEXP_PR_URL);
-  if (prUrlParts) {
-    const baseOwner = prUrlParts[1];
-    const baseRepo = prUrlParts[2];
-    const prNumber = prUrlParts[3];
-    result.diffUrl = `https://api.github.com/repos/${baseOwner}/${baseRepo}/pulls/${prNumber}.diff`;
-  }
-
-  return result;
 };
 
 export const fetchCompare = async (url: string, token: string) => {
@@ -34,14 +20,15 @@ export const fetchCompare = async (url: string, token: string) => {
     Accept: 'application/vnd.github.v3+json',
   };
 
-  const { compareUrl } = getApiUrls(url);
+  const compareUrl = getCompareUrl(url);
   try {
     if (!compareUrl) {
       return { content: '', commits: [] }
     }
 
     const compareResponse = await fetch(compareUrl, { headers });
-    const { files, commits } = await compareResponse.json();
+    const compareData = await compareResponse.json();
+    const { files, commits } = compareData;
 
     let content = '';
     for (const commit of commits) {

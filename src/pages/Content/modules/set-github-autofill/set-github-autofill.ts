@@ -5,9 +5,9 @@ import OpenAI from 'openai';
 import prompt from './prompt.md';
 
 import {
+  AI_ASSISTANT,
   GITHUB_AUTOFILL,
   GITHUB_AUTOFILL_SETTING,
-  AI_ASSISTANT,
   q,
   simulateClick,
   simulateType,
@@ -29,7 +29,6 @@ const run = async (url?: string) => {
   // Autofill reviewers
   //====================
   if (reviewers.length) {
-    console.log('[DEBUG] reviewers', reviewers)
     const reviewerEl = await waitForElement<HTMLDivElement>(
       '[data-menu-trigger="reviewers-select-menu"]'
     );
@@ -42,8 +41,12 @@ const run = async (url?: string) => {
           const el = await waitForElement<HTMLSpanElement>(
             `.js-username:contains("${reviewer}")`
           );
+
           if (el) {
-            simulateClick(el);
+            const isSelected = el.closest('label[aria-checked="true"]') !== null;
+            if (!isSelected) {
+              simulateClick(el);
+            }
             simulateType(reviewerInput, '{selectall}{del}');
           }
         }
@@ -57,7 +60,6 @@ const run = async (url?: string) => {
   // Autofill labels
   //====================
   if (labels.length) {
-    console.log('[DEBUG] labels', labels)
     const labelEl = q('[data-menu-trigger="labels-select-menu"]');
     if (labelEl) {
       simulateClick(labelEl);
@@ -69,7 +71,10 @@ const run = async (url?: string) => {
             `.js-label-name-html:contains("${label}")`
           );
           if (el) {
-            simulateClick(el);
+            const isSelected = el.closest('label[aria-checked="true"]') !== null;
+            if (!isSelected) {
+              simulateClick(el);
+            }
             simulateType(labelInput, '{selectall}{del}');
           }
         }
