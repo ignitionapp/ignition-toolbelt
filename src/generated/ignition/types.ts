@@ -18,8 +18,8 @@ export type MakeEmpty<
 export type Incremental<T> =
   | T
   | {
-      [P in keyof T]?: P extends ' $fragmentName' | '__typename' ? T[P] : never;
-    };
+    [P in keyof T]?: P extends ' $fragmentName' | '__typename' ? T[P] : never;
+  };
 /** All built-in and custom scalars, mapped to their actual values */
 export type Scalars = {
   ID: { input: string; output: string };
@@ -299,9 +299,9 @@ export type AgreedService = {
   client: Client;
   description: Textile;
   discount:
-    | BillingAmountDiscountRule
-    | BillingNoneDiscountRule
-    | BillingPercentDiscountRule;
+  | BillingAmountDiscountRule
+  | BillingNoneDiscountRule
+  | BillingPercentDiscountRule;
   /**
    * The date this service is scheduled to becomes inactive, provided all
    * associated billing items have been billed. If not set, service will stay
@@ -325,11 +325,11 @@ export type AgreedService = {
   paymentMethod?: Maybe<PaymentMethod>;
   portions: Array<AgreedServicePortion>;
   price:
-    | ProposalFixedPrice
-    | ProposalIncludedPrice
-    | ProposalMinimumPrice
-    | ProposalPriceRange
-    | ProposalUnitPrice;
+  | ProposalFixedPrice
+  | ProposalIncludedPrice
+  | ProposalMinimumPrice
+  | ProposalPriceRange
+  | ProposalUnitPrice;
   /** Quantity Object containing amounts and rules */
   quantity?: Maybe<
     BillingEstimateQuantityRule | BillingSmartBillingQuantityRule
@@ -408,18 +408,18 @@ export type AgreedServicePortion = {
   billingStart: ProposalStartBillingOnDate;
   billingSummary: Scalars['String']['output'];
   discount:
-    | BillingAmountDiscountRule
-    | BillingNoneDiscountRule
-    | BillingPercentDiscountRule;
+  | BillingAmountDiscountRule
+  | BillingNoneDiscountRule
+  | BillingPercentDiscountRule;
   id: Scalars['ID']['output'];
   invoiceStrategy: ProposalInvoiceStrategy;
   name?: Maybe<Scalars['String']['output']>;
   price:
-    | ProposalFixedPrice
-    | ProposalIncludedPrice
-    | ProposalMinimumPrice
-    | ProposalPriceRange
-    | ProposalUnitPrice;
+  | ProposalFixedPrice
+  | ProposalIncludedPrice
+  | ProposalMinimumPrice
+  | ProposalPriceRange
+  | ProposalUnitPrice;
   recurrence: ProposalBillingStrategyType;
   rrule?: Maybe<RecurrenceRule>;
   scheduleStart: Scalars['String']['output'];
@@ -1177,11 +1177,11 @@ export type BillableService = {
   invoiceStrategy?: Maybe<ProposalInvoiceStrategy>;
   name: Scalars['String']['output'];
   price:
-    | ProposalFixedPrice
-    | ProposalIncludedPrice
-    | ProposalMinimumPrice
-    | ProposalPriceRange
-    | ProposalUnitPrice;
+  | ProposalFixedPrice
+  | ProposalIncludedPrice
+  | ProposalMinimumPrice
+  | ProposalPriceRange
+  | ProposalUnitPrice;
   /** Quantity Object containing amounts and rules */
   quantity?: Maybe<
     BillingEstimateQuantityRule | BillingSmartBillingQuantityRule
@@ -1354,11 +1354,11 @@ export type BillingItem = {
   /** @deprecated Use unitPrice instead */
   price?: Maybe<Money>;
   priceRule:
-    | ProposalFixedPrice
-    | ProposalIncludedPrice
-    | ProposalMinimumPrice
-    | ProposalPriceRange
-    | ProposalUnitPrice;
+  | ProposalFixedPrice
+  | ProposalIncludedPrice
+  | ProposalMinimumPrice
+  | ProposalPriceRange
+  | ProposalUnitPrice;
   /** @deprecated Use quantity_rule instead. */
   quantity?: Maybe<Scalars['Decimal']['output']>;
   /** Quantity rule object containing amounts and rules */
@@ -1471,11 +1471,11 @@ export type BillingItemPreview = {
   id: Scalars['ID']['output'];
   name: Scalars['String']['output'];
   priceRule:
-    | ProposalFixedPrice
-    | ProposalIncludedPrice
-    | ProposalMinimumPrice
-    | ProposalPriceRange
-    | ProposalUnitPrice;
+  | ProposalFixedPrice
+  | ProposalIncludedPrice
+  | ProposalMinimumPrice
+  | ProposalPriceRange
+  | ProposalUnitPrice;
 };
 
 export type BillingItemResult = {
@@ -1491,11 +1491,11 @@ export type BillingItemResult = {
   date: Scalars['Date']['output'];
   id: Scalars['ID']['output'];
   itemPrice:
-    | ProposalFixedPrice
-    | ProposalIncludedPrice
-    | ProposalMinimumPrice
-    | ProposalPriceRange
-    | ProposalUnitPrice;
+  | ProposalFixedPrice
+  | ProposalIncludedPrice
+  | ProposalMinimumPrice
+  | ProposalPriceRange
+  | ProposalUnitPrice;
   serviceName: Scalars['String']['output'];
 };
 
@@ -9440,24 +9440,24 @@ export enum PlanVersion {
 export type Portion = {
   __typename: 'Portion';
   billingSchedule:
-    | ProposalOnceOffBillingSchedule
-    | ProposalRecurringBillingSchedule;
+  | ProposalOnceOffBillingSchedule
+  | ProposalRecurringBillingSchedule;
   description?: Maybe<Scalars['String']['output']>;
   discount:
-    | BillingAmountDiscountRule
-    | BillingNoneDiscountRule
-    | BillingPercentDiscountRule;
+  | BillingAmountDiscountRule
+  | BillingNoneDiscountRule
+  | BillingPercentDiscountRule;
   id: Scalars['ID']['output'];
   invoiceStrategy: ProposalInvoiceStrategy;
   percentage?: Maybe<Scalars['Decimal']['output']>;
   /** the one-based position of this portion in the proposed service */
   position: Scalars['Int']['output'];
   price:
-    | ProposalFixedPrice
-    | ProposalIncludedPrice
-    | ProposalMinimumPrice
-    | ProposalPriceRange
-    | ProposalUnitPrice;
+  | ProposalFixedPrice
+  | ProposalIncludedPrice
+  | ProposalMinimumPrice
+  | ProposalPriceRange
+  | ProposalUnitPrice;
   proposedService: ProposedService;
 };
 
@@ -10899,10 +10899,10 @@ export type ProposalBillingScheduleInterface = {
   recurrence: ProposalBillingStrategyType;
   serviceGroup: ServiceGroup;
   start:
-    | ProposalStartBillingOnAcceptance
-    | ProposalStartBillingOnDate
-    | ProposalStartBillingOnProposalEndDate
-    | ProposalStartBillingOnProposalStartDate;
+  | ProposalStartBillingOnAcceptance
+  | ProposalStartBillingOnDate
+  | ProposalStartBillingOnProposalEndDate
+  | ProposalStartBillingOnProposalStartDate;
   subtitle?: Maybe<Scalars['String']['output']>;
   /** Subtotal of fixed service price portions on this billing schedule including discount */
   subtotal: Money;
@@ -10930,10 +10930,10 @@ export type ProposalBillingStrategyInterface = {
   /** @deprecated use serviceGroup.title instead */
   description: Scalars['String']['output'];
   start:
-    | ProposalStartBillingOnAcceptance
-    | ProposalStartBillingOnDate
-    | ProposalStartBillingOnProposalEndDate
-    | ProposalStartBillingOnProposalStartDate;
+  | ProposalStartBillingOnAcceptance
+  | ProposalStartBillingOnDate
+  | ProposalStartBillingOnProposalEndDate
+  | ProposalStartBillingOnProposalStartDate;
   type: ProposalBillingStrategyType;
   updatedAt: Scalars['DateTime']['output'];
 };
@@ -11520,10 +11520,10 @@ export type ProposalOnceOffBillingSchedule =
     recurrence: ProposalBillingStrategyType;
     serviceGroup: ServiceGroup;
     start:
-      | ProposalStartBillingOnAcceptance
-      | ProposalStartBillingOnDate
-      | ProposalStartBillingOnProposalEndDate
-      | ProposalStartBillingOnProposalStartDate;
+    | ProposalStartBillingOnAcceptance
+    | ProposalStartBillingOnDate
+    | ProposalStartBillingOnProposalEndDate
+    | ProposalStartBillingOnProposalStartDate;
     subtitle?: Maybe<Scalars['String']['output']>;
     /** Subtotal of fixed service price portions on this billing schedule including discount */
     subtotal: Money;
@@ -11553,10 +11553,10 @@ export type ProposalOnceOffBillingStrategy =
     /** @deprecated use serviceGroup.title instead */
     description: Scalars['String']['output'];
     start:
-      | ProposalStartBillingOnAcceptance
-      | ProposalStartBillingOnDate
-      | ProposalStartBillingOnProposalEndDate
-      | ProposalStartBillingOnProposalStartDate;
+    | ProposalStartBillingOnAcceptance
+    | ProposalStartBillingOnDate
+    | ProposalStartBillingOnProposalEndDate
+    | ProposalStartBillingOnProposalStartDate;
     type: ProposalBillingStrategyType;
     updatedAt: Scalars['DateTime']['output'];
   };
@@ -11812,10 +11812,10 @@ export type ProposalRecurringBillingSchedule =
     rule: RecurrenceRule;
     serviceGroup: ServiceGroup;
     start:
-      | ProposalStartBillingOnAcceptance
-      | ProposalStartBillingOnDate
-      | ProposalStartBillingOnProposalEndDate
-      | ProposalStartBillingOnProposalStartDate;
+    | ProposalStartBillingOnAcceptance
+    | ProposalStartBillingOnDate
+    | ProposalStartBillingOnProposalEndDate
+    | ProposalStartBillingOnProposalStartDate;
     subtitle?: Maybe<Scalars['String']['output']>;
     /** Subtotal of fixed service price portions on this billing schedule including discount */
     subtotal: Money;
@@ -11846,10 +11846,10 @@ export type ProposalRecurringBillingStrategy =
     description: Scalars['String']['output'];
     rule: RecurrenceRule;
     start:
-      | ProposalStartBillingOnAcceptance
-      | ProposalStartBillingOnDate
-      | ProposalStartBillingOnProposalEndDate
-      | ProposalStartBillingOnProposalStartDate;
+    | ProposalStartBillingOnAcceptance
+    | ProposalStartBillingOnDate
+    | ProposalStartBillingOnProposalEndDate
+    | ProposalStartBillingOnProposalStartDate;
     type: ProposalBillingStrategyType;
     updatedAt: Scalars['DateTime']['output'];
   };
@@ -13284,9 +13284,9 @@ export type ProposedService = {
   description: Textile;
   descriptionContent: ProposalProposedServiceDescription;
   discount:
-    | BillingAmountDiscountRule
-    | BillingNoneDiscountRule
-    | BillingPercentDiscountRule;
+  | BillingAmountDiscountRule
+  | BillingNoneDiscountRule
+  | BillingPercentDiscountRule;
   id: Scalars['ID']['output'];
   invoiceStrategy: ProposalInvoiceStrategy;
   isAddOn: Scalars['Boolean']['output'];
@@ -13300,11 +13300,11 @@ export type ProposedService = {
   portions: Array<Portion>;
   position: Scalars['Int']['output'];
   price:
-    | ProposalFixedPrice
-    | ProposalIncludedPrice
-    | ProposalMinimumPrice
-    | ProposalPriceRange
-    | ProposalUnitPrice;
+  | ProposalFixedPrice
+  | ProposalIncludedPrice
+  | ProposalMinimumPrice
+  | ProposalPriceRange
+  | ProposalUnitPrice;
   /** Quantity Object containing amounts and rules */
   quantity?: Maybe<
     BillingEstimateQuantityRule | BillingSmartBillingQuantityRule
@@ -14522,12 +14522,12 @@ export enum SearchNumberFilterCondition {
   EQUALS = 'EQUALS',
 }
 
-export type SearchQuery = {
-  __typename: 'SearchQuery';
-  results: ResultConnection;
-  totalCount: Scalars['Int']['output'];
-  totalValue?: Maybe<Money>;
-};
+// export type SearchQuery = {
+//   __typename: 'SearchQuery';
+//   results: ResultConnection;
+//   totalCount: Scalars['Int']['output'];
+//   totalValue?: Maybe<Money>;
+// };
 
 export type SearchQueryResultsArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
@@ -14717,11 +14717,11 @@ export type Service = {
   name: Scalars['String']['output'];
   priceForDisplay?: Maybe<Scalars['String']['output']>;
   priceRule:
-    | BillingFixedPriceRule
-    | BillingIncludedPriceRule
-    | BillingMinimumPriceRule
-    | BillingRangePriceRule
-    | BillingUnitPriceRule;
+  | BillingFixedPriceRule
+  | BillingIncludedPriceRule
+  | BillingMinimumPriceRule
+  | BillingRangePriceRule
+  | BillingUnitPriceRule;
   priceType?: Maybe<ServicePriceType>;
   /** Publically available (legacy CPE field) */
   publicallyAvailable: Scalars['Boolean']['output'];
@@ -14885,8 +14885,8 @@ export type ServiceGroup = {
   >;
   /** @deprecated Use billing_schedules instead */
   billingStrategy:
-    | ProposalOnceOffBillingStrategy
-    | ProposalRecurringBillingStrategy;
+  | ProposalOnceOffBillingStrategy
+  | ProposalRecurringBillingStrategy;
   /** @deprecated Use billingSchedules { cadence } */
   cadence?: Maybe<Scalars['String']['output']>;
   createdAt: Scalars['DateTime']['output'];
@@ -17832,46 +17832,46 @@ export type BillingItemResultFragment = {
   amountWithTax?: { __typename: 'Money'; format: string };
   client: { __typename: 'ClientResult'; id: string; name: string };
   itemPrice:
-    | {
-        __typename: 'ProposalFixedPrice';
-        description: string;
-        display: string;
-        displayName: string;
-        displayWithTax: string;
-        type: ProposalPriceType;
-      }
-    | {
-        __typename: 'ProposalIncludedPrice';
-        description: string;
-        display: string;
-        displayName: string;
-        displayWithTax: string;
-        type: ProposalPriceType;
-      }
-    | {
-        __typename: 'ProposalMinimumPrice';
-        description: string;
-        display: string;
-        displayName: string;
-        displayWithTax: string;
-        type: ProposalPriceType;
-      }
-    | {
-        __typename: 'ProposalPriceRange';
-        description: string;
-        display: string;
-        displayName: string;
-        displayWithTax: string;
-        type: ProposalPriceType;
-      }
-    | {
-        __typename: 'ProposalUnitPrice';
-        description: string;
-        display: string;
-        displayName: string;
-        displayWithTax: string;
-        type: ProposalPriceType;
-      };
+  | {
+    __typename: 'ProposalFixedPrice';
+    description: string;
+    display: string;
+    displayName: string;
+    displayWithTax: string;
+    type: ProposalPriceType;
+  }
+  | {
+    __typename: 'ProposalIncludedPrice';
+    description: string;
+    display: string;
+    displayName: string;
+    displayWithTax: string;
+    type: ProposalPriceType;
+  }
+  | {
+    __typename: 'ProposalMinimumPrice';
+    description: string;
+    display: string;
+    displayName: string;
+    displayWithTax: string;
+    type: ProposalPriceType;
+  }
+  | {
+    __typename: 'ProposalPriceRange';
+    description: string;
+    display: string;
+    displayName: string;
+    displayWithTax: string;
+    type: ProposalPriceType;
+  }
+  | {
+    __typename: 'ProposalUnitPrice';
+    description: string;
+    display: string;
+    displayName: string;
+    displayWithTax: string;
+    type: ProposalPriceType;
+  };
 };
 
 export type ClientResultFragment = {
@@ -18076,72 +18076,72 @@ export type SearchBillingItemsQuery = {
         edges: Array<{
           __typename: 'ResultEdge';
           node:
-            | { __typename: 'AppClientResult' }
+          | { __typename: 'AppClientResult' }
+          | {
+            __typename: 'BillingItemResult';
+            id: string;
+            billingItemStatus: ClientBillingBillingItemState;
+            billingStrategy: string;
+            date: any;
+            serviceName: string;
+            amount?: { __typename: 'Money'; format: string };
+            amountWithTax?: { __typename: 'Money'; format: string };
+            client: {
+              __typename: 'ClientResult';
+              id: string;
+              name: string;
+            };
+            itemPrice:
             | {
-                __typename: 'BillingItemResult';
-                id: string;
-                billingItemStatus: ClientBillingBillingItemState;
-                billingStrategy: string;
-                date: any;
-                serviceName: string;
-                amount?: { __typename: 'Money'; format: string };
-                amountWithTax?: { __typename: 'Money'; format: string };
-                client: {
-                  __typename: 'ClientResult';
-                  id: string;
-                  name: string;
-                };
-                itemPrice:
-                  | {
-                      __typename: 'ProposalFixedPrice';
-                      description: string;
-                      display: string;
-                      displayName: string;
-                      displayWithTax: string;
-                      type: ProposalPriceType;
-                    }
-                  | {
-                      __typename: 'ProposalIncludedPrice';
-                      description: string;
-                      display: string;
-                      displayName: string;
-                      displayWithTax: string;
-                      type: ProposalPriceType;
-                    }
-                  | {
-                      __typename: 'ProposalMinimumPrice';
-                      description: string;
-                      display: string;
-                      displayName: string;
-                      displayWithTax: string;
-                      type: ProposalPriceType;
-                    }
-                  | {
-                      __typename: 'ProposalPriceRange';
-                      description: string;
-                      display: string;
-                      displayName: string;
-                      displayWithTax: string;
-                      type: ProposalPriceType;
-                    }
-                  | {
-                      __typename: 'ProposalUnitPrice';
-                      description: string;
-                      display: string;
-                      displayName: string;
-                      displayWithTax: string;
-                      type: ProposalPriceType;
-                    };
-              }
-            | { __typename: 'ClientResult' }
-            | { __typename: 'IgnitionAppServiceType' }
-            | { __typename: 'InvoiceResult' }
-            | { __typename: 'ProposalCustomTemplate' }
-            | { __typename: 'ProposalProvidedTemplate' }
-            | { __typename: 'ProposalResult' }
-            | { __typename: 'QuickbooksIntegrationRecurringTransaction' }
-            | { __typename: 'Service' }
-            | { __typename: 'XeroIntegrationRepeatingInvoice' };
+              __typename: 'ProposalFixedPrice';
+              description: string;
+              display: string;
+              displayName: string;
+              displayWithTax: string;
+              type: ProposalPriceType;
+            }
+            | {
+              __typename: 'ProposalIncludedPrice';
+              description: string;
+              display: string;
+              displayName: string;
+              displayWithTax: string;
+              type: ProposalPriceType;
+            }
+            | {
+              __typename: 'ProposalMinimumPrice';
+              description: string;
+              display: string;
+              displayName: string;
+              displayWithTax: string;
+              type: ProposalPriceType;
+            }
+            | {
+              __typename: 'ProposalPriceRange';
+              description: string;
+              display: string;
+              displayName: string;
+              displayWithTax: string;
+              type: ProposalPriceType;
+            }
+            | {
+              __typename: 'ProposalUnitPrice';
+              description: string;
+              display: string;
+              displayName: string;
+              displayWithTax: string;
+              type: ProposalPriceType;
+            };
+          }
+          | { __typename: 'ClientResult' }
+          | { __typename: 'IgnitionAppServiceType' }
+          | { __typename: 'InvoiceResult' }
+          | { __typename: 'ProposalCustomTemplate' }
+          | { __typename: 'ProposalProvidedTemplate' }
+          | { __typename: 'ProposalResult' }
+          | { __typename: 'QuickbooksIntegrationRecurringTransaction' }
+          | { __typename: 'Service' }
+          | { __typename: 'XeroIntegrationRepeatingInvoice' };
         }>;
       };
       totalValue?: { __typename: 'Money'; format: string };
@@ -18200,176 +18200,176 @@ export type SearchQuery = {
         edges: Array<{
           __typename: 'ResultEdge';
           node:
+          | {
+            __typename: 'AppClientResult';
+            id: string;
+            appName: string;
+            ignitionappClientId?: string;
+            lastSyncedAt?: any;
+            name: string;
+            primaryContactEmail?: string;
+            primaryContactName?: string;
+            appData: {
+              __typename: 'AppClientProconnect';
+              taxReturnType?: string;
+            };
+          }
+          | {
+            __typename: 'BillingItemResult';
+            id: string;
+            billingItemStatus: ClientBillingBillingItemState;
+            billingStrategy: string;
+            date: any;
+            serviceName: string;
+            amount?: { __typename: 'Money'; format: string };
+            amountWithTax?: { __typename: 'Money'; format: string };
+            client: {
+              __typename: 'ClientResult';
+              id: string;
+              name: string;
+            };
+            itemPrice:
             | {
-                __typename: 'AppClientResult';
+              __typename: 'ProposalFixedPrice';
+              description: string;
+              display: string;
+              displayName: string;
+              displayWithTax: string;
+              type: ProposalPriceType;
+            }
+            | {
+              __typename: 'ProposalIncludedPrice';
+              description: string;
+              display: string;
+              displayName: string;
+              displayWithTax: string;
+              type: ProposalPriceType;
+            }
+            | {
+              __typename: 'ProposalMinimumPrice';
+              description: string;
+              display: string;
+              displayName: string;
+              displayWithTax: string;
+              type: ProposalPriceType;
+            }
+            | {
+              __typename: 'ProposalPriceRange';
+              description: string;
+              display: string;
+              displayName: string;
+              displayWithTax: string;
+              type: ProposalPriceType;
+            }
+            | {
+              __typename: 'ProposalUnitPrice';
+              description: string;
+              display: string;
+              displayName: string;
+              displayWithTax: string;
+              type: ProposalPriceType;
+            };
+          }
+          | {
+            __typename: 'ClientResult';
+            id: string;
+            mostRecentActivityCause?: string;
+            mostRecentActivityError?: string;
+            mostRecentActivityOn?: any;
+            client: {
+              __typename: 'Client';
+              id: string;
+              createdAt: any;
+              isSurchargeEnabled: boolean;
+              name: string;
+              state: ClientState;
+              defaultContact: {
+                __typename: 'Contact';
                 id: string;
-                appName: string;
-                ignitionappClientId?: string;
-                lastSyncedAt?: any;
+                email?: any;
                 name: string;
-                primaryContactEmail?: string;
-                primaryContactName?: string;
-                appData: {
-                  __typename: 'AppClientProconnect';
-                  taxReturnType?: string;
-                };
-              }
-            | {
-                __typename: 'BillingItemResult';
+              };
+              group?: {
+                __typename: 'ClientGroup';
                 id: string;
-                billingItemStatus: ClientBillingBillingItemState;
-                billingStrategy: string;
-                date: any;
-                serviceName: string;
-                amount?: { __typename: 'Money'; format: string };
-                amountWithTax?: { __typename: 'Money'; format: string };
-                client: {
-                  __typename: 'ClientResult';
-                  id: string;
-                  name: string;
-                };
-                itemPrice:
-                  | {
-                      __typename: 'ProposalFixedPrice';
-                      description: string;
-                      display: string;
-                      displayName: string;
-                      displayWithTax: string;
-                      type: ProposalPriceType;
-                    }
-                  | {
-                      __typename: 'ProposalIncludedPrice';
-                      description: string;
-                      display: string;
-                      displayName: string;
-                      displayWithTax: string;
-                      type: ProposalPriceType;
-                    }
-                  | {
-                      __typename: 'ProposalMinimumPrice';
-                      description: string;
-                      display: string;
-                      displayName: string;
-                      displayWithTax: string;
-                      type: ProposalPriceType;
-                    }
-                  | {
-                      __typename: 'ProposalPriceRange';
-                      description: string;
-                      display: string;
-                      displayName: string;
-                      displayWithTax: string;
-                      type: ProposalPriceType;
-                    }
-                  | {
-                      __typename: 'ProposalUnitPrice';
-                      description: string;
-                      display: string;
-                      displayName: string;
-                      displayWithTax: string;
-                      type: ProposalPriceType;
-                    };
-              }
-            | {
-                __typename: 'ClientResult';
-                id: string;
-                mostRecentActivityCause?: string;
-                mostRecentActivityError?: string;
-                mostRecentActivityOn?: any;
-                client: {
-                  __typename: 'Client';
-                  id: string;
-                  createdAt: any;
-                  isSurchargeEnabled: boolean;
-                  name: string;
-                  state: ClientState;
-                  defaultContact: {
-                    __typename: 'Contact';
+                name: string;
+              };
+              notificationSettings?: {
+                __typename: 'ClientNotificationSettings';
+                recipients: Array<{
+                  __typename: 'Recipient';
+                  emailAddress: any;
+                }>;
+              };
+              paymentMethodRequests: {
+                __typename: 'PaymentMethodRequestConnection';
+                edges: Array<{
+                  __typename: 'PaymentMethodRequestEdge';
+                  node: {
+                    __typename: 'PaymentMethodRequest';
                     id: string;
-                    email?: any;
-                    name: string;
+                    errorMessage?: string;
+                    mostRecentActivityAt: any;
+                    state: PaymentMethodRequestState;
                   };
-                  group?: {
-                    __typename: 'ClientGroup';
-                    id: string;
-                    name: string;
-                  };
-                  notificationSettings?: {
-                    __typename: 'ClientNotificationSettings';
-                    recipients: Array<{
-                      __typename: 'Recipient';
-                      emailAddress: any;
-                    }>;
-                  };
-                  paymentMethodRequests: {
-                    __typename: 'PaymentMethodRequestConnection';
-                    edges: Array<{
-                      __typename: 'PaymentMethodRequestEdge';
-                      node: {
-                        __typename: 'PaymentMethodRequest';
-                        id: string;
-                        errorMessage?: string;
-                        mostRecentActivityAt: any;
-                        state: PaymentMethodRequestState;
-                      };
-                    }>;
-                  };
-                  paymentMethods?: Array<{
-                    __typename: 'PaymentMethod';
-                    createdAt: any;
-                    type: PaymentMethodType;
-                  }>;
-                };
-              }
-            | { __typename: 'IgnitionAppServiceType' }
-            | { __typename: 'InvoiceResult' }
-            | { __typename: 'ProposalCustomTemplate' }
-            | { __typename: 'ProposalProvidedTemplate' }
-            | {
-                __typename: 'ProposalResult';
-                id: string;
-                acceptedOn?: any;
-                activeServiceCount: number;
-                clientSlug: string;
-                completedOn?: any;
+                }>;
+              };
+              paymentMethods?: Array<{
+                __typename: 'PaymentMethod';
                 createdAt: any;
-                createdOn: any;
-                currency: string;
-                effectiveStartDate?: any;
-                expiryDate?: any;
-                isRenewed: boolean;
-                minimumValueCents: any;
-                mostRecentActivityCause?: string;
-                mostRecentActivityError?: string;
-                mostRecentActivityOn?: any;
-                name: string;
-                referenceNumber?: string;
-                remindersSentCount: number;
-                renewal: boolean;
-                reviewAssignee?: string;
-                reviewState?: ProposalReviewState;
-                sentOn?: string;
-                status: ProposalState;
-                updatedAt: any;
-                viewedByClient: boolean;
-                viewedByClientOn?: any;
-                client: {
-                  __typename: 'ClientResult';
-                  id: string;
-                  createdAt: any;
-                  groupContactEmail?: string;
-                  groupName?: string;
-                  manager?: string;
-                  name: string;
-                  partner?: string;
-                  primaryContactEmail?: string;
-                  tags?: string;
-                  updatedAt: any;
-                };
-              }
-            | { __typename: 'QuickbooksIntegrationRecurringTransaction' }
-            | { __typename: 'Service' }
-            | { __typename: 'XeroIntegrationRepeatingInvoice' };
+                type: PaymentMethodType;
+              }>;
+            };
+          }
+          | { __typename: 'IgnitionAppServiceType' }
+          | { __typename: 'InvoiceResult' }
+          | { __typename: 'ProposalCustomTemplate' }
+          | { __typename: 'ProposalProvidedTemplate' }
+          | {
+            __typename: 'ProposalResult';
+            id: string;
+            acceptedOn?: any;
+            activeServiceCount: number;
+            clientSlug: string;
+            completedOn?: any;
+            createdAt: any;
+            createdOn: any;
+            currency: string;
+            effectiveStartDate?: any;
+            expiryDate?: any;
+            isRenewed: boolean;
+            minimumValueCents: any;
+            mostRecentActivityCause?: string;
+            mostRecentActivityError?: string;
+            mostRecentActivityOn?: any;
+            name: string;
+            referenceNumber?: string;
+            remindersSentCount: number;
+            renewal: boolean;
+            reviewAssignee?: string;
+            reviewState?: ProposalReviewState;
+            sentOn?: string;
+            status: ProposalState;
+            updatedAt: any;
+            viewedByClient: boolean;
+            viewedByClientOn?: any;
+            client: {
+              __typename: 'ClientResult';
+              id: string;
+              createdAt: any;
+              groupContactEmail?: string;
+              groupName?: string;
+              manager?: string;
+              name: string;
+              partner?: string;
+              primaryContactEmail?: string;
+              tags?: string;
+              updatedAt: any;
+            };
+          }
+          | { __typename: 'QuickbooksIntegrationRecurringTransaction' }
+          | { __typename: 'Service' }
+          | { __typename: 'XeroIntegrationRepeatingInvoice' };
         }>;
       };
       totalValue?: { __typename: 'Money'; format: string };
@@ -18410,30 +18410,30 @@ export type SearchAppClientsQuery = {
         edges: Array<{
           __typename: 'ResultEdge';
           node:
-            | {
-                __typename: 'AppClientResult';
-                id: string;
-                appName: string;
-                ignitionappClientId?: string;
-                lastSyncedAt?: any;
-                name: string;
-                primaryContactEmail?: string;
-                primaryContactName?: string;
-                appData: {
-                  __typename: 'AppClientProconnect';
-                  taxReturnType?: string;
-                };
-              }
-            | { __typename: 'BillingItemResult' }
-            | { __typename: 'ClientResult' }
-            | { __typename: 'IgnitionAppServiceType' }
-            | { __typename: 'InvoiceResult' }
-            | { __typename: 'ProposalCustomTemplate' }
-            | { __typename: 'ProposalProvidedTemplate' }
-            | { __typename: 'ProposalResult' }
-            | { __typename: 'QuickbooksIntegrationRecurringTransaction' }
-            | { __typename: 'Service' }
-            | { __typename: 'XeroIntegrationRepeatingInvoice' };
+          | {
+            __typename: 'AppClientResult';
+            id: string;
+            appName: string;
+            ignitionappClientId?: string;
+            lastSyncedAt?: any;
+            name: string;
+            primaryContactEmail?: string;
+            primaryContactName?: string;
+            appData: {
+              __typename: 'AppClientProconnect';
+              taxReturnType?: string;
+            };
+          }
+          | { __typename: 'BillingItemResult' }
+          | { __typename: 'ClientResult' }
+          | { __typename: 'IgnitionAppServiceType' }
+          | { __typename: 'InvoiceResult' }
+          | { __typename: 'ProposalCustomTemplate' }
+          | { __typename: 'ProposalProvidedTemplate' }
+          | { __typename: 'ProposalResult' }
+          | { __typename: 'QuickbooksIntegrationRecurringTransaction' }
+          | { __typename: 'Service' }
+          | { __typename: 'XeroIntegrationRepeatingInvoice' };
         }>;
       };
       totalValue?: { __typename: 'Money'; format: string };
@@ -18474,67 +18474,67 @@ export type SearchClientsQuery = {
         edges: Array<{
           __typename: 'ResultEdge';
           node:
-            | { __typename: 'AppClientResult' }
-            | { __typename: 'BillingItemResult' }
-            | {
-                __typename: 'ClientResult';
+          | { __typename: 'AppClientResult' }
+          | { __typename: 'BillingItemResult' }
+          | {
+            __typename: 'ClientResult';
+            id: string;
+            mostRecentActivityCause?: string;
+            mostRecentActivityError?: string;
+            mostRecentActivityOn?: any;
+            client: {
+              __typename: 'Client';
+              id: string;
+              createdAt: any;
+              isSurchargeEnabled: boolean;
+              name: string;
+              state: ClientState;
+              defaultContact: {
+                __typename: 'Contact';
                 id: string;
-                mostRecentActivityCause?: string;
-                mostRecentActivityError?: string;
-                mostRecentActivityOn?: any;
-                client: {
-                  __typename: 'Client';
-                  id: string;
-                  createdAt: any;
-                  isSurchargeEnabled: boolean;
-                  name: string;
-                  state: ClientState;
-                  defaultContact: {
-                    __typename: 'Contact';
+                email?: any;
+                name: string;
+              };
+              group?: {
+                __typename: 'ClientGroup';
+                id: string;
+                name: string;
+              };
+              notificationSettings?: {
+                __typename: 'ClientNotificationSettings';
+                recipients: Array<{
+                  __typename: 'Recipient';
+                  emailAddress: any;
+                }>;
+              };
+              paymentMethodRequests: {
+                __typename: 'PaymentMethodRequestConnection';
+                edges: Array<{
+                  __typename: 'PaymentMethodRequestEdge';
+                  node: {
+                    __typename: 'PaymentMethodRequest';
                     id: string;
-                    email?: any;
-                    name: string;
+                    errorMessage?: string;
+                    mostRecentActivityAt: any;
+                    state: PaymentMethodRequestState;
                   };
-                  group?: {
-                    __typename: 'ClientGroup';
-                    id: string;
-                    name: string;
-                  };
-                  notificationSettings?: {
-                    __typename: 'ClientNotificationSettings';
-                    recipients: Array<{
-                      __typename: 'Recipient';
-                      emailAddress: any;
-                    }>;
-                  };
-                  paymentMethodRequests: {
-                    __typename: 'PaymentMethodRequestConnection';
-                    edges: Array<{
-                      __typename: 'PaymentMethodRequestEdge';
-                      node: {
-                        __typename: 'PaymentMethodRequest';
-                        id: string;
-                        errorMessage?: string;
-                        mostRecentActivityAt: any;
-                        state: PaymentMethodRequestState;
-                      };
-                    }>;
-                  };
-                  paymentMethods?: Array<{
-                    __typename: 'PaymentMethod';
-                    createdAt: any;
-                    type: PaymentMethodType;
-                  }>;
-                };
-              }
-            | { __typename: 'IgnitionAppServiceType' }
-            | { __typename: 'InvoiceResult' }
-            | { __typename: 'ProposalCustomTemplate' }
-            | { __typename: 'ProposalProvidedTemplate' }
-            | { __typename: 'ProposalResult' }
-            | { __typename: 'QuickbooksIntegrationRecurringTransaction' }
-            | { __typename: 'Service' }
-            | { __typename: 'XeroIntegrationRepeatingInvoice' };
+                }>;
+              };
+              paymentMethods?: Array<{
+                __typename: 'PaymentMethod';
+                createdAt: any;
+                type: PaymentMethodType;
+              }>;
+            };
+          }
+          | { __typename: 'IgnitionAppServiceType' }
+          | { __typename: 'InvoiceResult' }
+          | { __typename: 'ProposalCustomTemplate' }
+          | { __typename: 'ProposalProvidedTemplate' }
+          | { __typename: 'ProposalResult' }
+          | { __typename: 'QuickbooksIntegrationRecurringTransaction' }
+          | { __typename: 'Service' }
+          | { __typename: 'XeroIntegrationRepeatingInvoice' };
         }>;
       };
       totalValue?: { __typename: 'Money'; format: string };
@@ -18575,44 +18575,44 @@ export type SearchInvoicesQuery = {
         edges: Array<{
           __typename: 'ResultEdge';
           node:
-            | { __typename: 'AppClientResult' }
-            | { __typename: 'BillingItemResult' }
-            | { __typename: 'ClientResult' }
-            | { __typename: 'IgnitionAppServiceType' }
-            | {
-                __typename: 'InvoiceResult';
-                id: string;
-                collectionOn?: any;
-                externalNumber?: string;
-                externalUrl?: string;
-                paymentFailedOn?: any;
-                paymentStatus: SearchInvoicePaymentStatusType;
-                payoutOn?: any;
-                updatedAt: any;
-                amountWithTax: { __typename: 'Money'; format: string };
-                client: {
-                  __typename: 'ClientResult';
-                  id: string;
-                  name: string;
-                };
-                paymentMethod?: {
-                  __typename: 'SearchInvoicePaymentMethodType';
-                  id: string;
-                  displayName: string;
-                  numberSuffix: string;
-                  type: PaymentMethodType;
-                };
-                paymentProgress?: {
-                  __typename: 'SearchInvoicePaymentProgressType';
-                  displayName: string;
-                };
-              }
-            | { __typename: 'ProposalCustomTemplate' }
-            | { __typename: 'ProposalProvidedTemplate' }
-            | { __typename: 'ProposalResult' }
-            | { __typename: 'QuickbooksIntegrationRecurringTransaction' }
-            | { __typename: 'Service' }
-            | { __typename: 'XeroIntegrationRepeatingInvoice' };
+          | { __typename: 'AppClientResult' }
+          | { __typename: 'BillingItemResult' }
+          | { __typename: 'ClientResult' }
+          | { __typename: 'IgnitionAppServiceType' }
+          | {
+            __typename: 'InvoiceResult';
+            id: string;
+            collectionOn?: any;
+            externalNumber?: string;
+            externalUrl?: string;
+            paymentFailedOn?: any;
+            paymentStatus: SearchInvoicePaymentStatusType;
+            payoutOn?: any;
+            updatedAt: any;
+            amountWithTax: { __typename: 'Money'; format: string };
+            client: {
+              __typename: 'ClientResult';
+              id: string;
+              name: string;
+            };
+            paymentMethod?: {
+              __typename: 'SearchInvoicePaymentMethodType';
+              id: string;
+              displayName: string;
+              numberSuffix: string;
+              type: PaymentMethodType;
+            };
+            paymentProgress?: {
+              __typename: 'SearchInvoicePaymentProgressType';
+              displayName: string;
+            };
+          }
+          | { __typename: 'ProposalCustomTemplate' }
+          | { __typename: 'ProposalProvidedTemplate' }
+          | { __typename: 'ProposalResult' }
+          | { __typename: 'QuickbooksIntegrationRecurringTransaction' }
+          | { __typename: 'Service' }
+          | { __typename: 'XeroIntegrationRepeatingInvoice' };
         }>;
       };
       totalValue?: { __typename: 'Money'; format: string };
@@ -18653,58 +18653,58 @@ export type SearchProposalsQuery = {
         edges: Array<{
           __typename: 'ResultEdge';
           node:
-            | { __typename: 'AppClientResult' }
-            | { __typename: 'BillingItemResult' }
-            | { __typename: 'ClientResult' }
-            | { __typename: 'IgnitionAppServiceType' }
-            | { __typename: 'InvoiceResult' }
-            | { __typename: 'ProposalCustomTemplate' }
-            | { __typename: 'ProposalProvidedTemplate' }
-            | {
-                __typename: 'ProposalResult';
-                id: string;
-                acceptedOn?: any;
-                activeServiceCount: number;
-                clientSlug: string;
-                completedOn?: any;
-                createdAt: any;
-                createdOn: any;
-                currency: string;
-                effectiveStartDate?: any;
-                expiryDate?: any;
-                isRenewed: boolean;
-                minimumValueCents: any;
-                mostRecentActivityCause?: string;
-                mostRecentActivityError?: string;
-                mostRecentActivityOn?: any;
-                name: string;
-                referenceNumber?: string;
-                remindersSentCount: number;
-                renewal: boolean;
-                reviewAssignee?: string;
-                reviewState?: ProposalReviewState;
-                sentOn?: string;
-                status: ProposalState;
-                updatedAt: any;
-                viewedByClient: boolean;
-                viewedByClientOn?: any;
-                client: {
-                  __typename: 'ClientResult';
-                  id: string;
-                  createdAt: any;
-                  groupContactEmail?: string;
-                  groupName?: string;
-                  manager?: string;
-                  name: string;
-                  partner?: string;
-                  primaryContactEmail?: string;
-                  tags?: string;
-                  updatedAt: any;
-                };
-              }
-            | { __typename: 'QuickbooksIntegrationRecurringTransaction' }
-            | { __typename: 'Service' }
-            | { __typename: 'XeroIntegrationRepeatingInvoice' };
+          | { __typename: 'AppClientResult' }
+          | { __typename: 'BillingItemResult' }
+          | { __typename: 'ClientResult' }
+          | { __typename: 'IgnitionAppServiceType' }
+          | { __typename: 'InvoiceResult' }
+          | { __typename: 'ProposalCustomTemplate' }
+          | { __typename: 'ProposalProvidedTemplate' }
+          | {
+            __typename: 'ProposalResult';
+            id: string;
+            acceptedOn?: any;
+            activeServiceCount: number;
+            clientSlug: string;
+            completedOn?: any;
+            createdAt: any;
+            createdOn: any;
+            currency: string;
+            effectiveStartDate?: any;
+            expiryDate?: any;
+            isRenewed: boolean;
+            minimumValueCents: any;
+            mostRecentActivityCause?: string;
+            mostRecentActivityError?: string;
+            mostRecentActivityOn?: any;
+            name: string;
+            referenceNumber?: string;
+            remindersSentCount: number;
+            renewal: boolean;
+            reviewAssignee?: string;
+            reviewState?: ProposalReviewState;
+            sentOn?: string;
+            status: ProposalState;
+            updatedAt: any;
+            viewedByClient: boolean;
+            viewedByClientOn?: any;
+            client: {
+              __typename: 'ClientResult';
+              id: string;
+              createdAt: any;
+              groupContactEmail?: string;
+              groupName?: string;
+              manager?: string;
+              name: string;
+              partner?: string;
+              primaryContactEmail?: string;
+              tags?: string;
+              updatedAt: any;
+            };
+          }
+          | { __typename: 'QuickbooksIntegrationRecurringTransaction' }
+          | { __typename: 'Service' }
+          | { __typename: 'XeroIntegrationRepeatingInvoice' };
         }>;
       };
       totalValue?: { __typename: 'Money'; format: string };
