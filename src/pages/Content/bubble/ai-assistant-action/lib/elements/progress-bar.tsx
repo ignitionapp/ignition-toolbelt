@@ -1,6 +1,5 @@
 import React from 'react';
 import { BoxProps, HStack, Progress, Text, Stack } from '@chakra-ui/react';
-import { match } from 'ts-pattern';
 import { ProgressType } from '../vars';
 
 type Props = BoxProps & {
@@ -9,11 +8,20 @@ type Props = BoxProps & {
   totalDownloadedMegaBytes: number;
 };
 
-const getColorScheme = ({ progressType }: { progressType?: ProgressType }) =>
-  match(progressType)
-    .with(ProgressType.LOADING, () => 'green')
-    .with(ProgressType.DOWNLOAD_PREPARING, () => 'pink')
-    .otherwise(() => 'blue');
+const getColorScheme = ({
+  progressType,
+}: {
+  progressType?: ProgressType;
+}): string => {
+  switch (progressType) {
+    case ProgressType.LOADING:
+      return 'green';
+    case ProgressType.DOWNLOAD_PREPARING:
+      return 'pink';
+    default:
+      return 'blue';
+  }
+};
 
 const getMessage = ({
   progressType,
@@ -21,19 +29,18 @@ const getMessage = ({
 }: {
   progressType?: ProgressType;
   totalDownloadedMegaBytes: number;
-}) =>
-  match(progressType)
-    .with(ProgressType.LOADING, () => 'Initializing the assistant...')
-    .with(
-      ProgressType.DOWNLOADING,
-      () =>
-        `Downloading the assistant (${totalDownloadedMegaBytes} MB downloaded) ...`
-    )
-    .with(
-      ProgressType.DOWNLOAD_PREPARING,
-      () => 'Preparing for download the assistant'
-    )
-    .otherwise(() => '');
+}): string => {
+  switch (progressType) {
+    case ProgressType.LOADING:
+      return 'Initializing the assistant...';
+    case ProgressType.DOWNLOADING:
+      return `Downloading the assistant (${totalDownloadedMegaBytes} MB downloaded) ...`;
+    case ProgressType.DOWNLOAD_PREPARING:
+      return 'Preparing for download the assistant';
+    default:
+      return '';
+  }
+};
 
 export const ProgressBar = ({
   progress,
