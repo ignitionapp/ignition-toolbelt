@@ -2,7 +2,8 @@ import 'arrive';
 
 import OpenAI from 'openai';
 
-import prompt from './prompt.md';
+import writeDescriptionPrompt from './prompt-write-description.md';
+import codeReviewPrompt from './prompt-code-review.md';
 
 import {
   AI_ASSISTANT,
@@ -24,6 +25,77 @@ const run = async (url?: string) => {
     token: '',
   };
   const { token: assistantToken } = results[AI_ASSISTANT] || {};
+
+  //======================
+  // Autofill description
+  //======================
+  if (token && url) {
+    const { content = '', commits = [] } = await fetchCompare(url, token);
+    const lastCommit = commits[commits.length - 1].commit;
+
+    const title = lastCommit.message.split('\n')[0];
+    const titleEl = q<HTMLInputElement>('#pull_request_title');
+    const bodyEl = q<HTMLTextAreaElement>('#pull_request_body');
+
+    if (titleEl) {
+      titleEl.value = title;
+    }
+
+    if (bodyEl) {
+      bodyEl.value = `## What
+\n${title}\n
+## Why
+\n\n
+## How
+\n${lastCommit?.message.split('\n\n')[1] || ''}\n
+## Before
+\n\n
+## After
+\n\n`;
+    }
+
+    if (assistantToken) {
+
+      const openai = new OpenAI({
+        apiKey: assistantToken,
+        dangerouslyAllowBrowser: true,
+      });
+
+      const stream = await openai.chat.completions.create({
+        model: 'gpt-4o-mini-2024-07-18',
+        messages: [
+          { role: 'system', content: writeDescriptionPrompt },
+          { role: 'user', content },
+        ],
+        seed: 1,
+        temperature: 0,
+        stream: true,
+      });
+
+      if (bodyEl) {
+        bodyEl.value = '';
+        for await (const chunk of stream) {
+          const content = chunk.choices[0]?.delta?.content || '';
+          bodyEl.value += content;
+          bodyEl.scrollTop = bodyEl.scrollHeight;
+        }
+      }
+
+      console.log('[DEBUG] Reviewing your code...');
+      const codeReviewResponse = await openai.chat.completions.create({
+        model: 'gpt-4o-mini-2024-07-18',
+        messages: [
+          { role: 'system', content: codeReviewPrompt },
+          { role: 'user', content },
+        ],
+        temperature: 0,
+        seed: 2,
+      });
+
+      const codeReviewOutput = codeReviewResponse.choices[0]?.message?.content || '';
+      console.log('[DEBUG] Code Review Output:\n', codeReviewOutput);
+    }
+  }
 
   //====================
   // Autofill reviewers
@@ -80,62 +152,6 @@ const run = async (url?: string) => {
         }
         simulateType(labelInput, '{esc}');
         simulateClick(labelEl);
-      }
-    }
-  }
-
-  //======================
-  // Autofill description
-  //======================
-  if (token && url) {
-    const { content = '', commits = [] } = await fetchCompare(url, token);
-    const lastCommit = commits[commits.length - 1].commit;
-
-    const title = lastCommit.message.split('\n')[0];
-    const titleEl = q<HTMLInputElement>('#pull_request_title');
-    const bodyEl = q<HTMLTextAreaElement>('#pull_request_body');
-
-    if (titleEl) {
-      titleEl.value = title;
-    }
-
-    if (bodyEl) {
-      bodyEl.value = `## What
-\n${title}\n
-## Why
-\n\n
-## How
-\n${lastCommit?.message.split('\n\n')[1] || ''}\n
-## Before
-\n\n
-## After
-\n\n`;
-    }
-
-    if (assistantToken) {
-
-      const openai = new OpenAI({
-        apiKey: assistantToken,
-        dangerouslyAllowBrowser: true,
-      });
-
-      const stream = await openai.chat.completions.create({
-        model: 'gpt-4o',
-        messages: [
-          { role: 'system', content: prompt },
-          { role: 'user', content },
-        ],
-        temperature: 0,
-        stream: true,
-      });
-
-      if (bodyEl) {
-        bodyEl.value = '';
-        for await (const chunk of stream) {
-          const content = chunk.choices[0]?.delta?.content || '';
-          bodyEl.value += content;
-          bodyEl.scrollTop = bodyEl.scrollHeight;
-        }
       }
     }
   }

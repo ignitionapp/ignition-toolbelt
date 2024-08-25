@@ -8,6 +8,7 @@ import './set-npe-exit';
 import './set-comic-sans';
 import './set-github-autofill';
 import './set-local-ai-assistant';
+import './set-github-codereview';
 
 // Onboarding autofill
 import './set-initial-faker-seed-value';

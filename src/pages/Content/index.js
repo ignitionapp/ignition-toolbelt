@@ -14,8 +14,10 @@ import { setStripeConnectAutofill } from './modules/set-stripe-connect-autofill'
 import { setSubscriptionAutofill } from './modules/set-subscription-autofill';
 import { setGithubAutofill } from './modules/set-github-autofill';
 import { setLocalAIAssistant } from './modules/set-local-ai-assistant';
+import { setGithubCodeReview } from './modules/set-github-codereview';
 
 window.addEventListener('load', async () => {
+  console.log('[DEBUG] Load...');
   await setComicSans();
   await setMissionControlRedirect();
   await setNpeExit();
@@ -27,6 +29,7 @@ window.addEventListener('load', async () => {
   await setStripeConnectAutofill();
   await setGithubAutofill();
   await setLocalAIAssistant();
+  await setGithubCodeReview();
 });
 
 chrome.runtime.onMessage.addListener(async ({ type }) => {

@@ -1,24 +1,20 @@
 import debounce from 'debounce';
 
-import { GITHUB_AUTOFILL } from '../Content/lib';
+import { GITHUB_CODE_REVIEW } from '../Content/lib';
 
 (async () => {
   const filters = {
     url: [
       {
         hostEquals: 'github.com',
-        pathPrefix: '/ignitionapp/Practice-Ignition/compare/',
-      },
-      {
-        hostEquals: 'github.com',
-        pathPrefix: '/josephj/ignition-toolbelt/compare/',
+        pathPrefix: '/ignitionapp/Practice-Ignition/pull/',
       },
     ],
   };
 
   const handleLoadPage = ({ tabId, url }: { tabId: number; url: string }) => {
     chrome.tabs.sendMessage(tabId, {
-      type: GITHUB_AUTOFILL,
+      type: GITHUB_CODE_REVIEW,
       value: url,
     });
   };
