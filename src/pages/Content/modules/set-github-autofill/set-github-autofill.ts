@@ -87,7 +87,6 @@ const run = async (url?: string) => {
   //======================
   // Autofill description
   //======================
-
   if (token && url) {
     const { content = '', commits = [] } = await fetchCompare(url, token);
     const lastCommit = commits[commits.length - 1].commit;

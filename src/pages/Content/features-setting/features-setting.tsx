@@ -55,11 +55,11 @@ export const FeaturesSetting = () => {
       });
     };
 
-  const featureItems = featureStates.map(([featureFlag, isEnabled]) => {
-    const item = FEATURE_LIST.find(({ id }) => id === featureFlag);
-    if (!item) {
-      throw new Error(`Feature flag ${featureFlag} not found`);
-    }
+  const featureItems = FEATURE_LIST.map((item) => {
+    const featureState = featureStates.find(
+      ([featureFlag]) => featureFlag === item.id
+    );
+    const [, isEnabled] = featureState ?? [];
 
     return {
       ...item,
