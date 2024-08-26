@@ -12,7 +12,7 @@ import {
   q,
 } from '../../lib';
 
-import { fetchDetails } from './utils';
+import { fetchGithubData } from './utils';
 
 const run = async (url?: string) => {
   console.log('[DEBUG] Running code review....');
@@ -24,7 +24,7 @@ const run = async (url?: string) => {
   // Autofill description
   //======================
   if (githubToken && githubToken && url) {
-    await fetchDetails(url, githubToken);
+    await fetchGithubData(url, githubToken);
     // const lastCommit = commits[commits.length - 1].commit;
 
     // if (openAiToken) {
@@ -72,32 +72,19 @@ const run = async (url?: string) => {
 
 
 export const setGithubCodeReview = async () => {
-  console.log('[DEBUG] setGithubCodeReview')
   chrome.runtime.onMessage.addListener(async ({ type, value }) => {
     console.log('[DEBUG] Running code review!!!!');
     if (type !== GITHUB_CODE_REVIEW) {
       return;
     }
 
-    if (q('body.is-pr-composer-expanded')) {
-      await run(value);
-      return;
-    }
-
-    // @ts-ignore
-    document.arrive(
-      'body.is-pr-composer-expanded',
-      { fireOnAttributesModification: true },
-      async () => {
-        await run(value);
-      }
-    );
+    await run(value);
   });
 
   chrome.storage.local.onChanged.addListener(async (changes) => {
-    // const featureFlags = Object.keys(changes);
-    // if (featureFlags.includes(GITHUB_AUTOFILL)) {
-    await run();
-    // }
+    const featureFlags = Object.keys(changes);
+    if (featureFlags.includes(GITHUB_CODE_REVIEW)) {
+      await run();
+    }
   });
 };

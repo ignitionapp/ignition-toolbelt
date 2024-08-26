@@ -1,54 +1,84 @@
-export const fetchDetails = async (url: string, token: string) => {
-  let apiUrl, diffUrl;
-
-  const prUrlParts = url.match(
+const getApiUrl = (url: string) => {
+  const urlParts = url.match(
     /https:\/\/github\.com\/([^/]+)\/([^/]+)\/pull\/(\d+)/
   );
-  console.log('[DEBUG] prUrlParts', prUrlParts);
 
-  if (prUrlParts) {
-    const baseOwner = prUrlParts[1];
-    const baseRepo = prUrlParts[2];
-    const prNumber = prUrlParts[3];
-
-    apiUrl = `https://api.github.com/repos/${baseOwner}/${baseRepo}/pulls/${prNumber}`;
-    console.log('[DEBUG] apiUrl', apiUrl);
-    diffUrl = `https://api.github.com/repos/${baseOwner}/${baseRepo}/pulls/${prNumber}.diff`;
+  if (!urlParts) {
+    return
   }
 
-  const headers = {
-    Authorization: `token ${token}`,
-    Accept: 'application/vnd.github.v3+json',
-  };
+  const baseOwner = urlParts[1];
+  const baseRepo = urlParts[2];
+  const prNumber = urlParts[3];
+  const baseUrl = `https://api.github.com/repos/${baseOwner}/${baseRepo}/pulls/${prNumber}`;
 
+  return {
+    prUrl: baseUrl,
+    diffUrl: `${baseUrl}.diff`,
+    commitsUrl: `${baseUrl}/commits`
+  }
+}
+
+export const fetchGithubData = async (url: string, token: string) => {
   try {
-    let compareData;
-    if (apiUrl) {
-      const compareResponse = await fetch(apiUrl, { headers });
-      compareData = await compareResponse.json();
-      console.log('[DEBUG] compareData', compareData);
+    const apiUrl = getApiUrl(url)
+    if (!apiUrl) {
+      throw new Error('Unable to get API URL')
     }
 
-    let diffContent;
-    if (diffUrl) {
-      const diffResponse = await fetch(diffUrl, {
+    const { diffUrl, commitsUrl, prUrl } = apiUrl
+    const [diffResponse, commitsResponse, prResponse] = await Promise.all([
+      fetch(diffUrl, {
         headers: {
-          ...headers,
+          Authorization: `token ${token}`,
           Accept: 'application/vnd.github.v3.diff',
         },
-      });
-      if (!diffResponse.ok) {
-        throw new Error(
-          `GitHub API responded with status: ${diffResponse.status}`
-        );
-      }
-      diffContent = await diffResponse.text();
-      console.log('[DEBUG] diffContent', diffContent);
+      }),
+      fetch(commitsUrl, {
+        headers: {
+          Authorization: `token ${token}`,
+          Accept: 'application/vnd.github.v3+json',
+        },
+      }),
+      fetch(prUrl, {
+        headers: {
+          Authorization: `token ${token}`,
+          Accept: 'application/vnd.github.v3+json',
+        },
+      }),
+    ]);
+
+    // pull request - body, labels, title
+    if (!prResponse.ok) {
+      throw new Error(
+        `GitHub API responded with status: ${prResponse.status}`
+      );
     }
+    const prData = await prResponse.text();
+    console.log('[DEBUG] prData', prData)
+
+    // diff
+    if (!diffResponse.ok) {
+      throw new Error(
+        `GitHub API responded with status: ${diffResponse.status}`
+      );
+    }
+    const diff = await diffResponse.text();
+
+    // commits
+    if (!commitsResponse.ok) {
+      throw new Error(
+        `GitHub API responded with status: ${commitsResponse.status}`
+      );
+    }
+    const commitsData = await commitsResponse.json();
+    console.log('[DEBUG] commitsData', commitsData)
+
 
     return {
-      compareData,
-      diffContent,
+      commitsData,
+      diff,
+      prData
     };
   } catch (error) {
     console.error('Error fetching details:', error);
