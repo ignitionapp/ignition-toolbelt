@@ -3,6 +3,8 @@ import 'arrive'
 
 import { NPE_EXIT, q, waitForElement } from '../lib';
 
+let isWaiting = false
+
 const removeButton = () => {
   const closeButtonEl = q<HTMLLinkElement>('#npe-exit-button');
   if (closeButtonEl) {
@@ -23,21 +25,26 @@ const appendButton = async () => {
   closeButtonEl.title = 'Close the NPE';
   closeButtonEl.className = 'npe-exit-button';
 
+  isWaiting = true
   const proposalHeaderEl = await waitForElement<HTMLDivElement>(
     '[data-testid="proposal-header"]'
   );
+  isWaiting = false
+
   if (proposalHeaderEl?.firstChild) {
     (proposalHeaderEl.firstChild as HTMLElement).prepend(closeButtonEl);
   }
 }
 
 const run = async (isEnabled: boolean) => {
-  if (isEnabled) {
+  if (isEnabled && !isWaiting) {
     appendButton()
   } else {
     removeButton()
   }
 }
+
+const debouncedRun = debounce(run, 500)
 
 export const setNpeExit = () => {
   chrome.runtime.onMessage.addListener(async ({ type }) => {
@@ -47,7 +54,7 @@ export const setNpeExit = () => {
 
     const result = await chrome.storage.local.get([NPE_EXIT]);
     const isEnabled = !!result[NPE_EXIT];
-    await run(isEnabled)
+    await debouncedRun(isEnabled)
   });
 
   chrome.storage.local.onChanged.addListener(async (changes) => {
@@ -56,6 +63,6 @@ export const setNpeExit = () => {
     }
 
     const isEnabled = !!changes[NPE_EXIT].newValue
-    await run(isEnabled)
+    await debouncedRun(isEnabled)
   });
 };
