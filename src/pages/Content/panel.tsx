@@ -74,6 +74,13 @@ export const Panel = ({
       } else if (githubAutofillChange === false) {
         setGithubAutofillEnablility.off();
       }
+
+      const aiAssistantChange = changes[AI_ASSISTANT]?.newValue;
+      if (aiAssistantChange === true) {
+        setAiAssistantEnablility.on();
+      } else if (aiAssistantChange === false) {
+        setAiAssistantEnablility.off();
+      }
     });
   }, [
     setAiAssistantEnablility,

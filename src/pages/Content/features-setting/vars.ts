@@ -36,7 +36,7 @@ export const FEATURE_LIST: FeatureItem[] = [
   },
   {
     id: 'feature::ai-assistant',
-    title: 'AI assistant',
+    title: 'AI Assistant',
     description: 'Get information and help from AI assistant',
   },
 ];

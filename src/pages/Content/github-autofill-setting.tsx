@@ -46,10 +46,10 @@ const availableReviewers = [
   { label: 'Andrei Railean', value: 'AndreiRailean' },
   { label: 'Aleks Milosev', value: 'aleksandarmilosev' },
   { label: 'Bill Tran', value: 'BillTmn' },
+  { label: 'Bill Mansfield', value: 'bill-mansfield' },
   { label: 'Corinne Brady', value: 'corinnebrady' },
   { label: 'Chris Nelson', value: 'chrisrbnelson' },
   { label: 'Daniel Norman', value: 'danielcnorman' },
-  { label: 'Daniel Novikov', value: 'Daniel-Novikov' },
   { label: 'David Dinh', value: 'pi-ddinh' },
   { label: 'David Evans', value: 'davidevans-syd' },
   { label: 'David Smith', value: 'djs070' },
@@ -132,7 +132,7 @@ export const GithubAutofillSetting = () => {
         token,
       },
     });
-    reset({ reviewers, labels });
+    reset({ reviewers, labels, token });
   };
 
   return (
@@ -190,13 +190,15 @@ export const GithubAutofillSetting = () => {
           <FormLabel htmlFor="githubToken">GitHub Token</FormLabel>
           <InputGroup>
             <Input type="password" {...register('token')} />
-            <InputRightElement>
-              <Text color={isTokenValid ? 'green.500' : 'red.500'}>
-                <FontAwesomeIcon
-                  icon={isTokenValid ? faCheckCircle : faCircleXmark}
-                />
-              </Text>
-            </InputRightElement>
+            {token.length > 0 ? (
+              <InputRightElement>
+                <Text color={isTokenValid ? 'green.500' : 'red.500'}>
+                  <FontAwesomeIcon
+                    icon={isTokenValid ? faCheckCircle : faCircleXmark}
+                  />
+                </Text>
+              </InputRightElement>
+            ) : null}
           </InputGroup>
           <FormHelperText>
             It will be used for fetching your PR details. You can get your
