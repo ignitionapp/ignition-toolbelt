@@ -1,31 +1,61 @@
-const REGEXP_COMPARE_URL =
+
+const REGEXP_COMPARE_ACROSS_FORK_URL =
   /https:\/\/github\.com\/([^/]+)\/([^/]+)\/compare\/([^...]+)...([^:]+):([^?]+)/;
 
-export const getCompareUrl = (url: string) => {
+const REGEXP_COMPARE_URL =
+  /https:\/\/github\.com\/([^/]+)\/([^/]+)\/compare\/([^?]+)/;
+
+export const getCompareUrl = async (url: string, defaultBranchName: string) => {
+  const compareAcrossForkUrlParts = url.match(REGEXP_COMPARE_ACROSS_FORK_URL);
+  if (compareAcrossForkUrlParts) {
+    const baseOwner = compareAcrossForkUrlParts[1];
+    const baseRepo = compareAcrossForkUrlParts[2];
+    const baseBranch = compareAcrossForkUrlParts[3];
+    const headOwner = compareAcrossForkUrlParts[4];
+    const headBranch = compareAcrossForkUrlParts[5];
+    return `https://api.github.com/repos/${baseOwner}/${baseRepo}/compare/${baseBranch}...${headOwner}:${headBranch}`;
+  }
+
   const compareUrlParts = url.match(REGEXP_COMPARE_URL);
   if (compareUrlParts) {
     const baseOwner = compareUrlParts[1];
     const baseRepo = compareUrlParts[2];
-    const baseBranch = compareUrlParts[3];
-    const headOwner = compareUrlParts[4];
-    const headBranch = compareUrlParts[5];
-
-    return `https://api.github.com/repos/${baseOwner}/${baseRepo}/compare/${baseBranch}...${headOwner}:${headBranch}`;
+    const headBranch = compareUrlParts[3];
+    return `https://api.github.com/repos/${baseOwner}/${baseRepo}/compare/${defaultBranchName}...${headBranch}`
   }
 };
 
-export const fetchCompare = async (url: string, token: string) => {
+const getDefaultBranchName = async (url: string, token: string) => {
   const headers = {
     Authorization: `token ${token}`,
     Accept: 'application/vnd.github.v3+json',
   };
 
-  const compareUrl = getCompareUrl(url);
+  const urlParts = url.match(REGEXP_COMPARE_URL);
+  if (!urlParts) {
+    return;
+  }
+
+  const baseOwner = urlParts[1];
+  const baseRepo = urlParts[2];
+  const repoResponse = await fetch(`https://api.github.com/repos/${baseOwner}/${baseRepo}`, { headers });
+  const repoData = await repoResponse.json();
+  return repoData.default_branch
+}
+
+export const fetchCompare = async (url: string, token: string) => {
+
+  const defaultBranchName = await getDefaultBranchName(url, token)
+  const compareUrl = await getCompareUrl(url, defaultBranchName);
   try {
     if (!compareUrl) {
       return { content: '', commits: [] }
     }
 
+    const headers = {
+      Authorization: `token ${token}`,
+      Accept: 'application/vnd.github.v3+json',
+    };
     const compareResponse = await fetch(compareUrl, { headers });
     const compareData = await compareResponse.json();
     const { files, commits } = compareData;

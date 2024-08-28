@@ -38,9 +38,7 @@ const run = async (url?: string) => {
       if (reviewerInput) {
         for (const reviewer of reviewers) {
           simulateType(reviewerInput, reviewer);
-          const el = await waitForElement<HTMLSpanElement>(
-            `.js-username:contains("${reviewer}")`
-          );
+          const el = await waitForElement<HTMLSpanElement>(`.js-username:contains("${reviewer}")`, 100, 300);
 
           if (el) {
             const isSelected = el.closest('label[aria-checked="true"]') !== null;
@@ -67,9 +65,7 @@ const run = async (url?: string) => {
       if (labelInput) {
         for (const label of labels) {
           simulateType(labelInput, label);
-          const el = await waitForElement<HTMLSpanElement>(
-            `.js-label-name-html:contains("${label}")`
-          );
+          const el = await waitForElement<HTMLSpanElement>(`.js-label-name-html:contains("${label}")`, 100, 300);
           if (el) {
             const isSelected = el.closest('label[aria-checked="true"]') !== null;
             if (!isSelected) {
