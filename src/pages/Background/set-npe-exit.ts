@@ -1,3 +1,4 @@
+import debounce from 'debounce';
 import { NPE_EXIT } from '../Content/lib';
 
 (() => {
@@ -14,17 +15,23 @@ import { NPE_EXIT } from '../Content/lib';
     ],
   };
 
-  const handleLoadPage = ({ tabId, url }: { tabId: number; url: string }) => {
-    chrome.tabs.sendMessage(tabId, {
-      type: NPE_EXIT,
-      value: url,
-    });
+  const handleLoadPage = async ({ tabId, url }: { tabId: number; url: string }) => {
+    const result = await chrome.storage.local.get([NPE_EXIT]);
+    const isEnabled = !!result[NPE_EXIT];
+    if (isEnabled) {
+      chrome.tabs.sendMessage(tabId, {
+        type: NPE_EXIT,
+        value: url,
+      });
+    }
   };
 
+  const handleLoadPageDebounced = debounce(handleLoadPage, 500);
+
   chrome.webNavigation.onHistoryStateUpdated.addListener(
-    handleLoadPage,
+    handleLoadPageDebounced,
     filters
   );
 
-  chrome.webNavigation.onCompleted.addListener(handleLoadPage, filters);
+  chrome.webNavigation.onCompleted.addListener(handleLoadPageDebounced, filters);
 })();
