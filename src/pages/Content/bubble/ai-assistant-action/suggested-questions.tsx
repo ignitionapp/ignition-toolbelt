@@ -22,6 +22,8 @@ type ItemProps = {
 const Item = ({ onSelect, children, message }: ItemProps) => (
   <WrapItem>
     <Tag
+      backgroundColor="purple.500"
+      color="white"
       borderRadius="full"
       cursor="pointer"
       onClick={() => onSelect(message || children)}
