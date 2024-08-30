@@ -7,12 +7,6 @@ import {
   HStack,
   InputGroup,
   InputRightElement,
-  Modal,
-  ModalBody,
-  ModalCloseButton,
-  ModalContent,
-  ModalHeader,
-  ModalOverlay,
   Stack,
   Spinner,
   Text,
@@ -41,13 +35,7 @@ type FormValues = {
 
 const isProduction = getEnvByUrl(window.location.href) === 'production';
 
-export const AiAssistantModal = ({
-  isOpen,
-  onClose,
-}: {
-  isOpen: boolean;
-  onClose(): void;
-}) => {
+export const AiAssistantView = () => {
   const [isProcessing, setProcessing] = useBoolean();
   const {
     searchAppClients,
@@ -224,111 +212,102 @@ export const AiAssistantModal = ({
   const isLoading = progressType !== ProgressType.IDLE;
 
   return (
-    <Modal isCentered isOpen={isOpen} onClose={onClose} size="3xl">
-      <ModalOverlay />
-      <ModalContent maxWidth="95%" width="800px" height="90%">
-        <ModalHeader>
-          <Text>AI assistant</Text>
-          <ModalCloseButton />
-        </ModalHeader>
-        <ModalBody pb="large">
-          <form
-            style={{
-              display: 'flex',
-              height: '100%',
-              flexDirection: 'column',
-            }}
-            onSubmit={handleSubmit(handleSave)}
-          >
-            <Stack display="flex" spacing="large" height="100%">
-              <Box width="100%" flexShrink="1" flexGrow="1" height="0">
-                <Box overflowY="scroll" ref={conversationRef} height="100%">
-                  {conversationHistory.map((history, index) => (
-                    <Box key={index} mb={4}>
-                      <HStack
-                        alignItems="flex-start"
-                        justifyContent={
-                          history.sender === 'user' ? 'flex-end' : 'flex-start'
-                        }
-                      >
-                        <Box fontWeight="bold" py="medium">
-                          {history.sender === 'user' ? 'You' : 'Sparky'}:
-                        </Box>
-                        <Box
-                          backgroundColor={
-                            history.sender === 'user' ? 'blue.50' : 'gray.50'
-                          }
-                          borderRadius="md"
-                          p="medium"
-                          minWidth="300px"
-                          maxWidth="70%"
-                        >
-                          <HtmlContent sx={{ p: { _last: { mb: 0 } } }}>
-                            <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                              {history.message}
-                            </ReactMarkdown>
-                          </HtmlContent>
-                          {index === conversationHistory.length - 1 &&
-                          history.message === '' &&
-                          isProcessing &&
-                          !isLoading ? (
-                            <HStack>
-                              <Spinner color="red.500" />
-                              <Text>Assistant is thinking...</Text>
-                            </HStack>
-                          ) : null}
-                        </Box>
+    <form
+      style={{
+        display: 'flex',
+        height: '100%',
+        flexDirection: 'column',
+      }}
+      onSubmit={handleSubmit(handleSave)}
+    >
+      <Stack display="flex" spacing="large" height="100%">
+        <Box width="100%" flexShrink="1" flexGrow="1" height="0">
+          <Box overflowY="scroll" ref={conversationRef} height="100%">
+            {conversationHistory.map((history, index) => (
+              <Box key={index} mb={4}>
+                <HStack
+                  alignItems="flex-start"
+                  justifyContent={
+                    history.sender === 'user' ? 'flex-end' : 'flex-start'
+                  }
+                >
+                  <Box fontWeight="bold" py="medium">
+                    {history.sender === 'user' ? 'You' : 'Sparky'}:
+                  </Box>
+                  <Box
+                    backgroundColor={
+                      history.sender === 'user' ? 'yellow.50' : 'gray.50'
+                    }
+                    borderRadius="md"
+                    boxShadow="1px 1px 5px rgba(0, 0, 0, 0.1)"
+                    p="small"
+                    mr="small"
+                    minWidth="300px"
+                    maxWidth="85%"
+                    overflow="auto"
+                  >
+                    <HtmlContent sx={{ p: { _last: { mb: 0 } } }}>
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                        {history.message}
+                      </ReactMarkdown>
+                    </HtmlContent>
+                    {index === conversationHistory.length - 1 &&
+                    history.message === '' &&
+                    isProcessing &&
+                    !isLoading ? (
+                      <HStack>
+                        <Spinner color="red.500" />
+                        <Text>Assistant is thinking...</Text>
                       </HStack>
-                    </Box>
-                  ))}
+                    ) : null}
+                  </Box>
+                </HStack>
+              </Box>
+            ))}
 
-                  {isLoading && (
-                    <ProgressBar
-                      progress={progress}
-                      progressType={progressType}
-                      totalDownloadedMegaBytes={totalDownloadedMegaBytes}
-                    />
-                  )}
-                </Box>
-              </Box>
-              {!conversationHistory.length ? (
-                <SuggestedQuestions onSelect={handleSelectQuestion} />
-              ) : (
-                <Center>
-                  <Button onClick={handleReset}>
-                    Clean up the conversation
-                  </Button>
-                </Center>
-              )}
-              <Box>
-                <InputGroup>
-                  <Textarea
-                    isDisabled={isProcessing}
-                    pr="6.5rem"
-                    height="4.5rem"
-                    minHeight="4.5rem"
-                    placeholder="Your message..."
-                    resize="none"
-                    {...register('userMessage')}
-                    onKeyDown={handleKeyDown}
-                  ></Textarea>
-                  <InputRightElement width="5rem" mt="medium" mr="medium">
-                    <Button
-                      colorScheme="brand"
-                      size="lg"
-                      type="submit"
-                      height="3rem"
-                      isDisabled={isProcessing}
-                    >
-                      Send
-                    </Button>
-                  </InputRightElement>
-                </InputGroup>
-              </Box>
-            </Stack>
-          </form>
-        </ModalBody>
-      </ModalContent>
-    </Modal>
+            {isLoading && (
+              <ProgressBar
+                progress={progress}
+                progressType={progressType}
+                totalDownloadedMegaBytes={totalDownloadedMegaBytes}
+              />
+            )}
+          </Box>
+        </Box>
+        {!conversationHistory.length ? (
+          <SuggestedQuestions onSelect={handleSelectQuestion} />
+        ) : (
+          <Center>
+            <Button onClick={handleReset}>Clean up the conversation</Button>
+          </Center>
+        )}
+        <Box>
+          <InputGroup>
+            <Textarea
+              background="white"
+              isDisabled={isProcessing}
+              pr="6.5rem"
+              height="4.5rem"
+              minHeight="4.5rem"
+              placeholder="Your message..."
+              resize="none"
+              {...register('userMessage')}
+              onKeyDown={handleKeyDown}
+            ></Textarea>
+            <InputRightElement width="5rem" mt="medium" mr="medium">
+              <Button
+                colorScheme="brand"
+                size="lg"
+                type="submit"
+                height="3rem"
+                isDisabled={isProcessing}
+              >
+                Send
+              </Button>
+            </InputRightElement>
+          </InputGroup>
+        </Box>
+      </Stack>
+    </form>
   );
 };

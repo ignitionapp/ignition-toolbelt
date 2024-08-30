@@ -1,5 +1,6 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
+import 'arrive';
 
 import { App } from './App';
 
@@ -15,18 +16,22 @@ import { setSubscriptionAutofill } from './modules/set-subscription-autofill';
 import { setGithubAutofill } from './modules/set-github-autofill';
 import { setLocalAIAssistant } from './modules/set-local-ai-assistant';
 
+import { q } from './lib';
+import { AiButtonApp } from './ai-button-app';
+import { AiAssistantApp } from './ai-assistant-app';
+
 window.addEventListener('load', async () => {
-  await setComicSans();
-  await setMissionControlRedirect();
-  await setNpeExit();
+  setComicSans();
+  setMissionControlRedirect();
+  setNpeExit();
   await setGithubTicketAutolink();
-  await setJiraMissionControlLogin();
+  setJiraMissionControlLogin();
   await setSignupAutofill();
-  await setSubscriptionAutofill();
-  await setPaymentSetupAutofill();
-  await setStripeConnectAutofill();
+  setSubscriptionAutofill();
+  setPaymentSetupAutofill();
+  setStripeConnectAutofill();
   await setGithubAutofill();
-  await setLocalAIAssistant();
+  setLocalAIAssistant();
 });
 
 chrome.runtime.onMessage.addListener(async ({ type }) => {
@@ -39,10 +44,37 @@ chrome.runtime.onMessage.addListener(async ({ type }) => {
       .querySelector('meta[name="csrf-token"]')
       ?.getAttribute('content');
 
-    if (document.body && csrfToken) {
-      document.body.appendChild(rootEl);
-      const root = createRoot(rootEl);
-      root.render(<App csrfToken={csrfToken} />);
+    if (!document.body || !csrfToken) {
+      return;
     }
+
+    document.body.appendChild(rootEl);
+    const root = createRoot(rootEl);
+    root.render(<App csrfToken={csrfToken} />);
+
+    document.arrive('[data-testid="top-new-action-menu"]', () => {
+      const topNewActionButtonEl = q('[data-testid="top-new-action-menu"]');
+      const buttonEl = document.createElement('div');
+      buttonEl.id = 'ignition-toolbelt-assistant-button';
+      topNewActionButtonEl.parentNode.appendChild(buttonEl);
+      const topButtonRoot = createRoot(buttonEl);
+      topButtonRoot.render(<AiButtonApp csrfToken={csrfToken} />);
+    });
+
+    document.arrive('.app-container', () => {
+      const appContainerEl = q('.app-container');
+      const sidebarEl = document.createElement('div');
+      sidebarEl.id = 'ignition-boolbelt-assistant-sidebar';
+      sidebarEl.style.transition = 'width 0.5s';
+      appContainerEl.parentNode.appendChild(sidebarEl);
+      const sidebarRoot = createRoot(sidebarEl);
+      sidebarRoot.render(
+        <AiAssistantApp
+          csrfToken={csrfToken}
+          onOpen={() => (sidebarEl.style.width = '33%')}
+          onClose={() => (sidebarEl.style.width = '0')}
+        />
+      );
+    });
   }
 });
