@@ -38,15 +38,14 @@ const run = async (url?: string) => {
       if (reviewerInput) {
         for (const reviewer of reviewers) {
           simulateType(reviewerInput, reviewer);
-          const el = await waitForElement<HTMLSpanElement>(`.js-username:contains("${reviewer}")`, 100, 300);
-
+          const el = await waitForElement<HTMLSpanElement>(`.js-username:contains("${reviewer}")`, 150, 1000);
           if (el) {
             const isSelected = el.closest('label[aria-checked="true"]') !== null;
             if (!isSelected) {
               simulateClick(el);
             }
-            simulateType(reviewerInput, '{selectall}{del}');
           }
+          simulateType(reviewerInput, '{selectall}{del}');
         }
         simulateType(reviewerInput, '{esc}');
         simulateClick(reviewerEl);
@@ -65,14 +64,14 @@ const run = async (url?: string) => {
       if (labelInput) {
         for (const label of labels) {
           simulateType(labelInput, label);
-          const el = await waitForElement<HTMLSpanElement>(`.js-label-name-html:contains("${label}")`, 100, 300);
+          const el = await waitForElement<HTMLSpanElement>(`.js-label-name-html:contains("${label}")`, 150, 1000);
           if (el) {
             const isSelected = el.closest('label[aria-checked="true"]') !== null;
             if (!isSelected) {
               simulateClick(el);
             }
-            simulateType(labelInput, '{selectall}{del}');
           }
+          simulateType(labelInput, '{selectall}{del}');
         }
         simulateType(labelInput, '{esc}');
         simulateClick(labelEl);
@@ -109,29 +108,32 @@ const run = async (url?: string) => {
     }
 
     if (assistantToken) {
+      try {
+        const openai = new OpenAI({
+          apiKey: assistantToken,
+          dangerouslyAllowBrowser: true,
+        });
 
-      const openai = new OpenAI({
-        apiKey: assistantToken,
-        dangerouslyAllowBrowser: true,
-      });
+        const stream = await openai.chat.completions.create({
+          model: 'gpt-4o-mini-2024-07-18',
+          messages: [
+            { role: 'system', content: prompt },
+            { role: 'user', content },
+          ],
+          temperature: 0,
+          stream: true,
+        });
 
-      const stream = await openai.chat.completions.create({
-        model: 'gpt-4o',
-        messages: [
-          { role: 'system', content: prompt },
-          { role: 'user', content },
-        ],
-        temperature: 0,
-        stream: true,
-      });
-
-      if (bodyEl) {
-        bodyEl.value = '';
-        for await (const chunk of stream) {
-          const content = chunk.choices[0]?.delta?.content || '';
-          bodyEl.value += content;
-          bodyEl.scrollTop = bodyEl.scrollHeight;
+        if (bodyEl) {
+          bodyEl.value = '';
+          for await (const chunk of stream) {
+            const content = chunk.choices[0]?.delta?.content || '';
+            bodyEl.value += content;
+            bodyEl.scrollTop = bodyEl.scrollHeight;
+          }
         }
+      } catch (error) {
+        console.error('Error calling OpenAI API:', error);
       }
     }
   }

@@ -10,10 +10,9 @@ import 'arrive';
 import { getEnvByUrl } from '../../../Popup/utils';
 
 const SUBMIT_BUTTON_SELECTOR = 'button[type="button"]:contains("Submit")';
-const BANK_ACCOUNT_NAME_SELECTOR = 'input[placeholder="Account Holder Name"]';
-const BANK_ROUTING_NUMBER_SELECTOR = 'input[placeholder="Routing Number"]';
-const BANK_BSB_NUMBER_SELECTOR = 'input[placeholder="BSB"]';
-const BANK_ACCOUNT_NUMBER_SELECTOR = 'input[placeholder="Account Number"]';
+const BANK_ACCOUNT_NAME_SELECTOR = 'input[name="accountName"]';
+const BANK_ROUTING_NUMBER_SELECTOR = 'input[name="routingNumber"]';
+const BANK_ACCOUNT_NUMBER_SELECTOR = 'input[name="accountNumber"]';
 
 const faker = new Faker({ locale: [en_AU, en, base] });
 
@@ -28,20 +27,17 @@ const run = async (value: string, shouldClickNext = false) => {
   const { fakerSeedValue } = await chrome.storage.local.get(['fakerSeedValue']);
   faker.seed(fakerSeedValue);
 
-  const bankAccountName = await waitForElement<HTMLInputElement>(
+  const bankAccountName = await q<HTMLInputElement>(
     BANK_ACCOUNT_NAME_SELECTOR
   );
-  if (bankAccountName)
+  if (bankAccountName && !bankAccountName.value)
     simulateType(bankAccountName, faker.finance.accountName());
 
   const bankRoutingNumber = q<HTMLInputElement>(BANK_ROUTING_NUMBER_SELECTOR);
-  if (bankRoutingNumber) simulateType(bankRoutingNumber, '110000000');
-
-  const bankBsbNumber = q<HTMLInputElement>(BANK_BSB_NUMBER_SELECTOR);
-  if (bankBsbNumber) simulateType(bankBsbNumber, '000000');
+  if (bankRoutingNumber && !bankRoutingNumber.value) simulateType(bankRoutingNumber, '110000000');
 
   const bankAccountNumber = q<HTMLInputElement>(BANK_ACCOUNT_NUMBER_SELECTOR);
-  if (bankAccountNumber) simulateType(bankAccountNumber, '000123456');
+  if (bankAccountNumber && !bankAccountNumber.value) simulateType(bankAccountNumber, '000123456');
 
   const submitButton = await waitForElement(SUBMIT_BUTTON_SELECTOR);
   if (shouldClickNext && submitButton) {
@@ -56,6 +52,6 @@ export const setPaymentSetupAutofill = () => {
     }
 
     // @ts-ignore
-    document.arrive('.pie-auto-name-on-bank-account', () => run(value));
+    document.arrive('[name="accountName"]', () => run(value));
   });
 };

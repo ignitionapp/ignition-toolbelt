@@ -33,23 +33,20 @@ const run = async (url: string /*, shouldClickNext = false*/) => {
     document.querySelector('[name="phone"]');
   if (phoneEl) simulateType(phoneEl, faker.phone.number());
 
-  const addressLineOneEl: HTMLInputElement | null = document.querySelector(
-    '[name="addressLineOne"]'
-  );
+  const addressEl = document.querySelector('label[for="companyAddress.lines"]')?.nextSibling as HTMLElement;
+  const addressLineOneEl: HTMLInputElement | null = addressEl?.querySelector('input');
   if (addressLineOneEl)
     simulateType(addressLineOneEl, faker.location.streetAddress());
 
   const cityEl: HTMLInputElement | null =
-    document.querySelector('[name="city"]');
+    document.querySelector('[name="companyAddress.city"]');
   if (cityEl) simulateType(cityEl, faker.location.city());
 
-  simulateSelect(
-    '.chakra-form-control:contains("State")',
-    faker.location.state()
-  );
+  const stateLabelEl = document.querySelector<HTMLLabelElement>('label[for="companyAddress.state"]')?.nextSibling as HTMLElement;
+  simulateSelect(stateLabelEl, faker.location.state());
 
   const postalCodeEl: HTMLInputElement | null = document.querySelector(
-    '[name="postalCode"]'
+    '[name="companyAddress.postcode"]'
   );
   if (postalCodeEl) simulateType(postalCodeEl, faker.location.zipCode());
 

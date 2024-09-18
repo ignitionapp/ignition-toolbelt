@@ -16,10 +16,9 @@ export const simulateClick = (buttonElement: HTMLButtonElement) => {
   buttonElement.dispatchEvent(new MouseEvent('click', { bubbles: true }));
 };
 
-export const simulateSelect = (selector: string, value: string) => {
-  const selectControl = q<HTMLElement>(
-    selector
-  )?.querySelector<HTMLInputElement>('.react-select__control input');
+export const simulateSelect = (selector: string | HTMLElement, value: string) => {
+  const selectorEl = typeof selector === 'string' ? q<HTMLElement>(selector) : selector;
+  const selectControl = selectorEl?.querySelector<HTMLInputElement>('.react-select__control input');
 
   if (!selectControl) {
     console.error('Select control not found');
