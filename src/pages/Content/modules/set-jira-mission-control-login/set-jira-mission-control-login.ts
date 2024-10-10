@@ -75,17 +75,19 @@ const renderContainer = (rootEl: HTMLElement, practiceId: string) => {
 
   const containerEl = document.createElement('div');
   containerEl.className = 'ignt-jira-mission-control-login';
-  containerEl.style.top = `${rootEl.offsetHeight + 10}px`;
+  containerEl.style.top = `${rootEl.offsetHeight + 20}px`;
   containerEl.style.right = '5px';
   containerEl.innerHTML = [
     `<img class="ignt-jira-mission-control-login-logo" src="${iconUrl}" alt="Ignition logo" />`,
     `<a href="#" class="ignt-jira-mission-control-login-link disabled" ${DATA_ATTR}="#">Detecting...</a>`,
   ].join('&nbsp;');
-  if (rootEl.parentNode) rootEl.parentNode.appendChild(containerEl);
+  if (rootEl.parentNode?.parentNode)
+    rootEl.parentNode.parentNode.appendChild(containerEl);
   return containerEl;
 };
 
 const run = async (value = null) => {
+  console.log('[DEBUG] run()');
   const result = await chrome.storage.local.get([JIRA_MISSION_CONTROL_LOGIN]);
   const isEnabled = value ? value : result[JIRA_MISSION_CONTROL_LOGIN] || false;
   if (!isEnabled) {

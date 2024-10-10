@@ -17,21 +17,33 @@ const FILTERS = {
 };
 
 const setIgnitionCredentials = async () => {
-  const csrfTokenCookie = await chrome.cookies.get({
-    url: PRODUCTION_URL,
-    name: 'csrf_token',
-  });
+  // Remove the csrfTokenCookie retrieval
   const sessionIdCookie = await chrome.cookies.get({
     url: PRODUCTION_URL,
     name: '_session_id',
   });
-  const csrfToken = csrfTokenCookie?.value;
   const sessionId = sessionIdCookie?.value;
-  if (!csrfToken || !sessionId) {
-    throw new Error('Missing CSRF token or session ID');
+  if (!sessionId) {
+    throw new Error('Missing session ID');
   }
 
   const cookie = `_session_id=${sessionIdCookie?.value};`;
+
+  // Fetch the CSRF token from the meta tag
+  let csrfToken;
+  try {
+    const response = await fetch(`${PRODUCTION_URL}/console`);
+    const html = await response.text();
+    const match = html.match(/<meta name="csrf-token" content="([^"]+)"/);
+    csrfToken = match ? match[1] : null;
+    if (!csrfToken) {
+      throw new Error('CSRF token not found in meta tag');
+    }
+  } catch (error) {
+    console.error('Failed to fetch CSRF token', error);
+    return;
+  }
+
   try {
     const data = await makeIgnitionRequest({
       cookie,
