@@ -49,16 +49,6 @@ const run = async (url: string, shouldClickNext = false) => {
     }
 
     case '/welcome': {
-      const notSureButton = await waitForElement<HTMLButtonElement>(
-        'button:contains("not sure")'
-      );
-      if (shouldClickNext && notSureButton) {
-        simulateClick(notSureButton);
-      }
-      break;
-    }
-
-    case '/welcome/about': {
       const fullNameEl = await waitForElement<HTMLInputElement>(
         'input[name="fullName"]'
       );
