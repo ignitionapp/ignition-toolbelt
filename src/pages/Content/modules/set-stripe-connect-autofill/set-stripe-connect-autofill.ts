@@ -28,7 +28,7 @@ const run = async (shouldClickNext = false) => {
     case 'About your business':
       await autofillAboutBusinessPage(shouldClickNext);
       return;
-    case 'Tell us more about your business':
+    case 'Tell us about your business':
       await autofillBusinessDetailsPage(faker, shouldClickNext);
       return;
     case 'Verify you represent this business':
