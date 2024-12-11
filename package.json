@@ -1,8 +1,8 @@
 {
   "name": "ignitionapp-toolbelt",
-  "version": "0.4.2",
-  "description": "A chrome extension boilerplate built with React 17, Webpack 5, and Webpack Dev Server 4",
-  "license": "MIT",
+  "version": "0.4.3",
+  "description": "Streamlines Ignitioneers' daily operations",
+  "private": true,
   "repository": {
     "type": "git",
     "url": "https://github.com/josephj/ignitionapp-toolbelt"
