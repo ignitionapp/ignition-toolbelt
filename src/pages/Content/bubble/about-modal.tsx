@@ -1,12 +1,14 @@
 import React from 'react';
 import {
+  Flex,
   HStack,
-  Link,
   Image,
+  Link,
   Modal,
   ModalBody,
   ModalCloseButton,
   ModalContent,
+  ModalFooter,
   ModalHeader,
   ModalOverlay,
   Stack,
@@ -98,6 +100,17 @@ export const AboutModal = ({
             </HStack>
           </Stack>
         </ModalBody>
+        <ModalFooter>
+          <Flex
+            color="faint"
+            justifyContent="space-between"
+            width="100%"
+            fontSize="xsmall"
+          >
+            <Text>Environment: {process.env.NODE_ENV}</Text>
+            <Text>Version: {process.env.PACKAGE_VERSION}</Text>
+          </Flex>
+        </ModalFooter>
       </ModalContent>
     </Modal>
   );

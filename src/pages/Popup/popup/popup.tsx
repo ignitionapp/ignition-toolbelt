@@ -1,8 +1,9 @@
 import {
-  Stack,
+  Center,
   FormControl,
   FormLabel,
-  StackDivider,
+  Stack,
+  Text,
   VStack,
 } from '@chakra-ui/react';
 import React, { useEffect, useMemo, useState } from 'react';
@@ -76,33 +77,33 @@ export const Popup = () => {
   );
 
   return (
-    <VStack spacing="xxlarge" py="50px" px="50px" width="100%">
+    <VStack spacing={3} py="50px" px="50px" width="100%">
       <img src={logo} alt="logo" style={{ height: '50px' }} />
-      <Stack
-        spacing="xlarge"
-        divider={<StackDivider borderColor="gray.600" />}
-        width="100%"
-      >
-        <FormControl>
-          <FormLabel textAlign="center">Log in as the account</FormLabel>
-          <Select<SelectOption, false, SelectOptionGroup>
-            menuIsOpen
-            styles={darkThemeStyles}
-            placeholder="Choose an account to log in"
-            onChange={handleChange}
-            components={{
-              Option: (props) => (
-                <FlagOption {...props} onRemoveOption={handleRemoveAccount} />
-              ),
-              SingleValue: FlagSingleValue,
-            }}
-            options={options}
-            value={options
-              .flatMap((group) => group.options)
-              .find((option) => option.isDisabled)}
-          />
-        </FormControl>
-      </Stack>
+      <Center>
+        <Text color="gray.500" fontSize="xxsmall">
+          Version: {process.env.PACKAGE_VERSION} ({process.env.NODE_ENV})
+        </Text>
+      </Center>
+
+      <FormControl>
+        <FormLabel textAlign="center">Log in as the account</FormLabel>
+        <Select<SelectOption, false, SelectOptionGroup>
+          menuIsOpen
+          styles={darkThemeStyles}
+          placeholder="Choose an account to log in"
+          onChange={handleChange}
+          components={{
+            Option: (props) => (
+              <FlagOption {...props} onRemoveOption={handleRemoveAccount} />
+            ),
+            SingleValue: FlagSingleValue,
+          }}
+          options={options}
+          value={options
+            .flatMap((group) => group.options)
+            .find((option) => option.isDisabled)}
+        />
+      </FormControl>
     </VStack>
   );
 };

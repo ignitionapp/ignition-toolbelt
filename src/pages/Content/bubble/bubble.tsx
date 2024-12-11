@@ -211,6 +211,17 @@ export const Bubble = ({
             >
               About
             </MenuItem>
+            <MenuDivider />
+            <MenuItem>
+              <Text
+                color="faint"
+                fontSize="xsmall"
+                textAlign="right"
+                width="100%"
+              >
+                Version: {process.env.PACKAGE_VERSION} ({process.env.NODE_ENV})
+              </Text>
+            </MenuItem>
           </MenuList>
         </Menu>
       </Flex>
