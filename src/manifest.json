@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Ignition Toolbelt",
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAvbHTkFs080N7j1WAEfJNGffnQDg+RV5xigvyjAZY9R7/pu3uirHIc18VflY6lMXxQMpOSv3oB9P7P6ZVGzTxvo/nOSqDb5LsyTL+cOXbZI9/BzqHgzcG++3hdyGG/MJJLvAm3TSb9D+UyYXqN7NPZgKL56URUOI+ey6gyfQhO8yxEOVymMZKOocQc00XJK/l4zI8gTPgMa+N1b+C/y2PWSkHr/JI0RcmO0eNpwm6dt3dJ/uVxE7zthsGkxO2sTIK7NM0br93sKE28ZbOP0yjb6ywO8v1+UfzYuPnDTAiVUmyxlUNOuHm456r2ZgtIypDzoTRimUgeXT8Y/bJZZ7sBwIDAQAB",
-  "version": "0.4.2",
+  "version": "0.4.3",
   "description": "Streamlines Ignitioneers' daily operations",
   "background": {
     "service_worker": "background.bundle.js"
@@ -33,7 +33,7 @@
       "all_frames": true
     }
   ],
-  "permissions": ["storage", "tabs", "cookies", "webNavigation"],
+  "permissions": ["storage", "cookies", "webNavigation"],
   "host_permissions": [
     "https://*.sandbox.ignitionapp.com/",
     "https://demo.ignitionapp.com/",
