@@ -52,8 +52,8 @@ chrome.runtime.onMessage.addListener(async ({ type }) => {
     const root = createRoot(rootEl);
     root.render(<App csrfToken={csrfToken} />);
 
-    document.arrive('[data-testid="top-new-action-menu"]', () => {
-      const topNewActionButtonEl = q('[data-testid="top-new-action-menu"]');
+    document.arrive('[data-testid="global-action-button"]', () => {
+      const topNewActionButtonEl = q('[data-testid="global-action-button"]');
       const buttonEl = document.createElement('div');
       buttonEl.id = 'ignition-toolbelt-assistant-button';
       topNewActionButtonEl.parentNode.appendChild(buttonEl);
@@ -61,12 +61,17 @@ chrome.runtime.onMessage.addListener(async ({ type }) => {
       topButtonRoot.render(<AiButtonApp csrfToken={csrfToken} />);
     });
 
-    document.arrive('.app-container', () => {
-      const appContainerEl = q('.app-container');
+    document.arrive('[data-testid="main-nav"]', () => {
+      const navEl = q('[data-testid="main-nav"]');
+      const containerEl = navEl.parentNode.parentNode;
+      if (document.querySelector('#ignition-boolbelt-assistant-sidebar')) {
+        return;
+      }
+
       const sidebarEl = document.createElement('div');
       sidebarEl.id = 'ignition-boolbelt-assistant-sidebar';
       sidebarEl.style.transition = 'width 0.5s';
-      appContainerEl.parentNode.appendChild(sidebarEl);
+      containerEl.appendChild(sidebarEl);
       const sidebarRoot = createRoot(sidebarEl);
       sidebarRoot.render(
         <AiAssistantApp

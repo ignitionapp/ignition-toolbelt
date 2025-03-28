@@ -36,6 +36,13 @@ export const autofillBusinessDetailsPage = async (
     simulateType(companyTaxId, generateFakeABN(/*faker*/));
   }
 
+  const australianCompanyNumber = q<HTMLInputElement>(
+    'input[name="company[registration_number]"]'
+  );
+  if (australianCompanyNumber) {
+    simulateType(australianCompanyNumber, '1234567890');
+  }
+
   const doingBusinessAs = q<HTMLInputElement>(
     'input[name="business_profile[name]"]'
   );

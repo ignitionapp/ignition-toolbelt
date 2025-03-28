@@ -57,6 +57,27 @@ export const autofillBusinessOwnerPage = async (
     simulateType(phoneNumber, faker.helpers.fromRegExp(/041[0-9]{7}/));
   }
 
+  const relationshipOwner = q<HTMLInputElement>(
+    'input[name="relationship.owner"]'
+  );
+  if (relationshipOwner) {
+    simulateClick(relationshipOwner);
+  }
+
+  const relationshipDirector = q<HTMLInputElement>(
+    'input[name="relationship.director"]'
+  );
+  if (relationshipDirector) {
+    simulateClick(relationshipDirector);
+  }
+
+  const relationshipPercentOwnership = q<HTMLInputElement>(
+    'input[name="relationship[percent_ownership]"]'
+  );
+  if (relationshipPercentOwnership) {
+    simulateType(relationshipPercentOwnership, '100');
+  }
+
   if (shouldClickNext) {
     const nextButton = q('a:contains("Continue")');
     if (nextButton) {

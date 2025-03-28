@@ -84,6 +84,7 @@ const run = async (url: string, shouldClickNext = false) => {
       simulateSelect('.revenueBracket', '$0-$200K');
       simulateSelect('.ledger', 'Xero');
       simulateSelect('.clientsCount', '2000+ clients');
+      simulateSelect('.hasManyRecurringClients', 'No');
 
       const nextButtonEl = q<HTMLButtonElement>('[data-testid="next-button"]');
       if (shouldClickNext && nextButtonEl) simulateClick(nextButtonEl);
